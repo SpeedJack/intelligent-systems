@@ -53,7 +53,7 @@ function dataset = preparedata(inputFile)
 			continue;
 		end
 
-		merged.("s"+ string(subject)).(activity) = [timeseries, targets];
+		merged.("s"+ string(subject)).(activity) = [timeseries targets];
 	end
 
 	rmdir(tempDir, 's');

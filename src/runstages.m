@@ -1,101 +1,70 @@
-function nextData = runstages(stages)
-	projectRoot = currentProject().RootFolder;
-	dataDir = fullfile(projectRoot, 'data');
-
-	% Read stage definition
-	stageToRun = stages{end}{1};
-	if isa(stageToRun, 'function_handle')
-		stageToRun = func2str(stageToRun);
+function result = runstages(varargin)
+	if nargin == 0
+		result = [];
+		return;
 	end
-	fprintf('*** STAGE %s ***\n', stageToRun);
-
-	if size(stages{end}, 2) < 2 || size(stages{end}, 2) > 4
-		error('Error. Invalid stage definition.');
-	end
-
-	outputFile = fullfile(dataDir, string(stages{end}{2}));
-	if size(stages, 2) > 1
-		inputFile = fullfile(dataDir, string(stages{end-1}{2}));
-	else
-		inputFile = fullfile(projectRoot, 'dataset.zip'); % preparedata
-	end
-
-	forceRun = "old";
-	additionalParams = {};
-	if size(stages{end}, 2) == 4 % third: forceRun; fourth: additionalParams
-		forceRun = string(stages{end}{3});
-		additionalParams = stages{end}{4};
-	elseif size(stages{end}, 2) == 3 % third element may be forceRun or additionalParams
-		if isstring(stages{end}{3}) || ischar(stages{end}{3}) || islogical(stages{end}{3})
-			forceRun = string(stages{end}{3});
-		else
-			additionalParams = stages{end}{3};
+	for i = 1:nargin
+		stage = varargin{i};
+		result.(stage.Name) = runstage(stage);
+		fields = fieldnames(result.(stage.Name));
+		if numel(fields) == 1 && strcmp(fields{1}, stage.Name)
+			result.(stage.Name) = result.(stage.Name).(stage.Name);
 		end
 	end
-	if ~iscell(additionalParams)
-		additionalParams = {additionalParams};
+	if nargin == 1
+		result = result.(stage.Name);
 	end
+end
 
-	% Check if stage should be run
-	forceRun = lower(forceRun);
-	needRun = true;
-	switch forceRun
-		case {"always", "true", "yes", "y"}
-			needRun = true;
-		case {"old", "o"} % run only if outputFile older than inputFile
-			needRun = ~exist(outputFile, 'file') || ...
-				(exist(inputFile, 'file') && ...
-				dir(outputFile).datenum < dir(inputFile).datenum);
-		case {"never", "false", "no", "n"}
-			if ~exist(outputFile, 'file')
-				error('Error. Can not load data: file does not exist.');
-			end
-			needRun = false;
-		case {"alwaysask", "aa", "ask", "a"} % if always, ask even if outputFile is up-to-date
-			always = forceRun == "alwaysask" || forceRun == "aa";
-			needRun = false;
-			if ~exist(outputFile, 'file')
-				needRun = true;
-			elseif exist(inputFile, 'file')
-				if dir(outputFile).datenum < dir(inputFile).datenum;
-					needRun = ~askquestion("Results for this stage are old.\n    Load anyway?", 'n');
-				elseif always
-					needRun = ~askquestion("Up-to-date results for this stage are available.\n    Load them?", 'y');
-				end
-			elseif always
-				needRun = ~askquestion("Results for this stage are available, but it is unknown if they are up-to-date.\n    Load anyway?", 'n');
-			end
-		otherwise
-			error('Error. Invalid value for forceRun: %s.', forceRun);
-	end
-
-	% Load cached results if possible
-	if ~needRun
-		fprintf('Loading existing data from ''%s''...\n', outputFile);
-		nextData = load(outputFile);
+function nextData = runstage(stage)
+	if stage.OutputAvailable
+		nextData = stage.Output;
 		return;
 	end
 
-	% Recursive call to run previous stages
-	prevData = inputFile; % preparedata has no prevData, but it needs path to dataset.zip
-	if size(stages, 2) > 1
-		prevData = runstages(stages(1:end-1));
-	end
+	fprintf('*** STAGE %s ***\n', stage.Name);
 
-	% Run this stage
-	stageFunc = str2func(stageToRun);
-	nextData = stageFunc(prevData, additionalParams{:});
-
-	% Save results
-	if ~isempty(nextData)
-		if ~exist(dataDir, 'dir')
-			mkdir(dataDir);
+	switch stage.RunPolicy
+	case RunPolicy.ALWAYS
+		needRun = true;
+	case RunPolicy.OLD
+		needRun = stage.isOutdated();
+	case RunPolicy.NEVER
+		if ~exist(stage.OutputFile, 'file')
+			error('Error. Can not load data for stage ''%s'': output file does not exists.', stage.Name);
 		end
-		save(outputFile, '-struct', 'nextData');
-		fprintf('Results saved to ''%s''.\n', outputFile);
+		if stage.isOutdated()
+			warning('Warning. Will load saved results for stage ''%s'', but they appear outdated.', stage.Name);
+		end
+		needRun = false;
+	case {RunPolicy.ALWAYSASK, RunPolicy.ASK}
+		needRun = false;
+		if ~exist(stage.OutputFile, 'file')
+			needRun = true;
+		elseif stage.isOutdated()
+			needRun = ~askquestion("* Results for this stage are old.\n    Load anyway?", 'n');
+		elseif stage.RunPolicy == RunPolicy.ALWAYSASK
+			needRun = ~askquestion("* Up-to-date results for this stage are available.\n    Load them?", 'y');
+		end
 	end
 
-	fprintf('*** END STAGE %s ***\n\n', stageToRun);
+	if needRun
+		if ~stage.allInputsAvailable()
+			fprintf('* Running input stages...\n');
+			for inputStage = stage.InputStages
+				runstage(inputStage);
+			end
+			fprintf('*** BACK TO STAGE %s ***\n', stage.Name);
+		end
+
+		nextData = stage.run();
+		fprintf('* Results for stage ''%s'' saved in ''%s''.\n', stage.Name, stage.OutputFile);
+	else
+		fprintf('* Loading existing data for stage ''%s'' from file ''%s''...\n', stage.Name, stage.OutputFile);
+		nextData = stage.loadOutput();
+	end
+
+	fprintf('*** END STAGE %s ***\n', stage.Name);
 end
 
 function response = askquestion(prompt, defAnswer)
