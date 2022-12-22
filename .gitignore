@@ -1,8 +1,19 @@
 # Dataset archive
 /dataset.zip
 
-# Data directory
-/data/
+# mat files
+*.mat
+
+# figures
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.pdf
+*.svg
+
+# diaries
+*.txt
 
 # Windows default autosave extension
 *.asv

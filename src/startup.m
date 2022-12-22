@@ -1,0 +1,17 @@
+format long
+
+global DEFAULT_RUNPOLICY
+global CONTINUE_ON_WARNING
+global SHOW_FIGURES
+global EXPORT_FIGURES
+DEFAULT_RUNPOLICY = RunPolicy.OLD;
+CONTINUE_ON_WARNING = false;
+SHOW_FIGURES = true;
+EXPORT_FIGURES = false;
+
+global DATA_FOLDER
+global FIGURES_FOLDER
+global DIARIES_FOLDER
+DATA_FOLDER = 'data';
+FIGURES_FOLDER = 'figures';
+DIARIES_FOLDER = 'diaries';

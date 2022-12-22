@@ -7,7 +7,9 @@ classdef Stage < handle
 		InputStages(1,:) Stage
 		Output(1,1) struct = struct()
 		OutputFile {mustBeTextScalar} = ''
-		RunPolicy(1,1) RunPolicy = RunPolicy.OLD
+		RunPolicy(1,1) RunPolicy = RunPolicy.DEFAULT
+		RunQuestionAnswer(1,2) logical = [false false]
+		ClearMemoryAfterExecution(1,1) logical = false
 	end
 	properties (Dependent)
 		Name
@@ -16,9 +18,9 @@ classdef Stage < handle
 
 	methods
 		function obj = Stage(stageFunction, outputFile, runPolicy, varargin)
-			global DEFAULT_RUNPOLICY
+			global DATA_FOLDER
 			projectRoot = currentProject().RootFolder;
-			dataDir = fullfile(projectRoot, 'data');
+			dataDir = fullfile(projectRoot, DATA_FOLDER);
 			if nargin > 0
 				if isa(stageFunction, 'function_handle')
 					obj.Function = stageFunction;
@@ -33,8 +35,6 @@ classdef Stage < handle
 			end
 			if nargin > 2
 				obj.RunPolicy = runPolicy;
-			elseif ~isempty(DEFAULT_RUNPOLICY)
-				obj.RunPolicy = DEFAULT_RUNPOLICY;
 			end
 			if nargin > 3
 				obj.AdditionalParams = varargin;
@@ -84,23 +84,12 @@ classdef Stage < handle
 					return;
 				end
 			end
-			load(obj.OutputFile, 'usedParams');
-			if numel(obj.AdditionalParams) ~= numel(usedParams)
-				outdated = true;
-				return;
-			end
-			for i = 1:numel(obj.AdditionalParams)
-				if ~isequal(usedParams{i}, obj.AdditionalParams{i})
-					outdated = true;
-					return;
-				end
-			end
 			outdated = false;
 		end
 
 		function output = loadOutput(obj)
 			if ~obj.OutputAvailable
-				obj.Output = load(obj.OutputFile, '-regexp', '^(?!usedParams$).+$');
+				obj.Output = load(obj.OutputFile);
 			end
 			output = obj.Output;
 		end
@@ -113,7 +102,7 @@ classdef Stage < handle
 
 		function inputData = getInputData(obj)
 			if ~obj.allInputsAvailable
-				error('Error. Missing input for stage ''%s''.', obj.Name);
+				error('IS:Stage:missingInput', 'Error: Missing input for stage ''%s''.', obj.Name);
 			end
 			if isempty(obj.InputStages)
 				inputData = [];
@@ -121,21 +110,11 @@ classdef Stage < handle
 			end
 			if numel(obj.InputStages) == 1
 				stage = obj.InputStages(1);
-				fields = fieldnames(stage.Output);
-				if numel(fields) == 1 && strcmp(fields{1}, stage.Name)
-					inputData = stage.Output.(stage.Name);
-				else
-					inputData = stage.Output;
-				end
+				inputData = stage.getOutput();
 				return;
 			end
 			for stage = obj.InputStages
-				fields = fieldnames(stage.Output);
-				if numel(fields) == 1 && strcmp(fields{1}, stage.Name)
-					inputData.(stage.Name) = stage.Output.(stage.Name);
-				else
-					inputData.(stage.Name) = stage.Output;
-				end
+				inputData.(stage.Name) = stage.getOutput();
 			end
 		end
 
@@ -158,8 +137,37 @@ classdef Stage < handle
 				mkdir(folder);
 			end
 			save(obj.OutputFile, '-struct', 'output');
-			usedParams = obj.AdditionalParams;
-			save(obj.OutputFile, 'usedParams', '-append');
+
+			output = obj.getOutput();
+		end
+
+		function output = getOutput(obj, varargin)
+			p = inputParser;
+			p.addOptional('load', true, @(x) isscalar(x) && islogical(x));
+			p.parse(varargin{:});
+			if ~obj.OutputAvailable
+				if ~p.Results.load
+					error('IS:Stage:missingOutputMem', 'Error: No output available in memory for stage ''%s''.', obj.Name);
+				end
+				if ~exist(obj.OutputFile, 'file')
+					error('IS:Stage:missingOutputDisk', 'Error: No output available on disk for stage ''%s''.', obj.Name);
+				end
+				obj.loadOutput();
+			end
+
+			fields = fieldnames(obj.Output);
+			if numel(fields) == 1 && strcmp(fields{1}, obj.Name)
+				output = obj.Output.(obj.Name);
+			else
+				output = obj.Output;
+			end
+		end
+
+		function clearMemory(obj)
+			obj.Output = struct();
+			for stage = obj.InputStages
+				stage.clearMemory();
+			end
 		end
 	end
 end
