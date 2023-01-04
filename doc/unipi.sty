@@ -12,9 +12,11 @@
 \RequirePackage{etoolbox}
 \RequirePackage{suffix}
 \RequirePackage{minibox}
-\RequirePackage{pdflscape}
+\RequirePackage{multicol}
+% \RequirePackage{pdflscape}
+\RequirePackage{pdfpages}
 \RequirePackage{xcolor}
-\RequirePackage{graphicx}
+% \RequirePackage{graphicx}
 \RequirePackage{float}
 \RequirePackage{titlesec}
 % TODO: add option to enable/disable caption formatting
@@ -154,6 +156,7 @@
 \newcommand\chref[1]{Chapter~\ref{#1}\space\enquote{\nameref{#1}}}
 \newcommand\secref[1]{Section~\ref{#1}\space\enquote{\nameref{#1}}}
 \newcommand\figref[1]{Figure~\ref{#1}}
+\newcommand\vfigref[1]{Figure~\ref{#1} \vpageref{#1}}
 \newcommand\lstref[1]{Listing~\ref{#1}}
 \newcommand\tableref[1]{Table~\ref{#1}}
 \newcommand\appendixref[1]{Appendix~\ref{#1}\space\enquote{\nameref{#1}}}
@@ -164,6 +167,8 @@
 \renewcommand\theadfont{\bfseries}
 \renewcommand{\cellalign}{l}
 
+\setlength{\columnsep}{0cm}
+
 \newcommand\theacademicyear{\@academicyear}
 \newcommand\theauthor{\@author}
 \newcommand\theauthors{\@authors}
@@ -173,48 +178,29 @@
 \newcommand\thesubtitle{\@subtitle}
 \newcommand\thetitle{\@title}
 
-\definecolor{codebg}{HTML}{FDF6E3}
-\definecolor{codecomment}{HTML}{93A1A1}
-\definecolor{codestring}{HTML}{2AA198}
-\definecolor{codekeyword}{HTML}{859900}
-\definecolor{codelinenum}{HTML}{808080}
+\definecolor{txtbg}{HTML}{FDF9EA}
+\definecolor{txtlinenum}{HTML}{808080}
 \colorlet{codenumber}{magenta!60!black}
 
-\lstdefinestyle{ccode}{
-	backgroundcolor=\color{codebg},
+\lstdefinestyle{plaintext}{
+	backgroundcolor=\color{txtbg},
 	basicstyle=\footnotesize\ttfamily,
-	commentstyle=\color{codecomment},
-	stringstyle=\color{codestring},
-	keywordstyle=\color{codekeyword},
-	numberstyle=\tiny\color{codelinenum},
+	numberstyle=\tiny\color{txtlinenum},
 	captionpos=b,
 	language=c,
 	numbers=left,
 	numbersep=5pt,
 	stepnumber=1,
 	tabsize=2,
-	otherkeywords={float64_t},
 	breaklines=true,
 	breakatwhitespace=false,
 	keepspaces=true,
 	showspaces=false,
 	showstringspaces=false,
-	showtabs=false,
-	%postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
-	literate=
-		*{0}{{{\color{codenumber}0}}}{1}
-		{1}{{{\color{codenumber}1}}}{1}
-		{2}{{{\color{codenumber}2}}}{1}
-		{3}{{{\color{codenumber}3}}}{1}
-		{4}{{{\color{codenumber}4}}}{1}
-		{5}{{{\color{codenumber}5}}}{1}
-		{6}{{{\color{codenumber}6}}}{1}
-		{7}{{{\color{codenumber}7}}}{1}
-		{8}{{{\color{codenumber}8}}}{1}
-		{9}{{{\color{codenumber}9}}}{1}
+	showtabs=false
 }
 
-\lstset{style=ccode}
+\lstset{style=plaintext}
 
 \institute{University of Pisa}
 

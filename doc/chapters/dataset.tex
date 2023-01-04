@@ -1,0 +1,42 @@
+\chapter{Dataset}\label{ch:dataset}
+
+This chapter describes the preliminary work done on the dataset in order to
+prepare it to train and test the intelligent systems described in the next
+chapters.
+
+The first stages of most pipelines used in this project are the following:
+\begin{description}
+\item[preparedata] This stage loads the data from the CSV files and builds a
+	MATLAB structure with a field for each subject. Each field is a
+	structure itself with a field for each activity containing a timetable
+	with a column for each signal (including the ECG signal).
+\item[fixdata] This stage checks that each timetable built in the previous
+	stage do not contain any large ``hole'' (a long period of time without
+	data). If such a hole is found, the timetable is splitted into 2
+	timetables, creating a new subject. The resulting MATLAB structure has
+	the same fields as before. In particular, this stage is used to fix the
+	data of subject \texttt{s1} during the activity \texttt{sit} which has
+	a large 1 hour hole in the middle of the data. A new subject
+	(\texttt{s23}) is created with the only activity \texttt{sit}. From
+	execution output:
+	\begin{verbatim}
+	*** STAGE fixdata ***
+	Subject 1, activity sit: 2 DIFFERENT time deltas
+	(largest: 01:03:06.917). Some are too large.
+	Splitting...1-140932...140933-254026(->s23)...done!
+	\end{verbatim}
+\item[augmentdata] This stage performs data augmentation via random
+	subsampling, as explained in \secref{sec:augmentdata}.
+\item[getfeatures] This stage simply returns a list of features to extract. See
+	\secref{subsec:getfeaturesstage}.
+\item[extractfeatures] This stage extracts all the features specified by the
+	previous stage (\texttt{getfeatures}) from the augmented dataset. This
+	stage is described in details in \secref{subsec:extractfeaturesstage}.
+\item[extracttargets] Extract the targets (ECG mean, standard deviation and
+	activity) from the augmented dataset, as described in
+	\secref{subsec:extracttargetsstage}.
+\end{description}
+
+\input{dataset/augmentdata}
+\input{dataset/extractfeaturestargets}
+\input{dataset/normalization}

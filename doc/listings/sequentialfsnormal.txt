@@ -1,0 +1,37 @@
+*** STAGE selectfeatures ***
+Preparing data for sequentialfs...done!
+Running sequentialfs for ecg mean...
+Start forward sequential feature selection:
+Initial columns included:  none
+Columns that can not be included:  none
+Step 1, added column 17, criterion value 20.5722
+Step 2, added column 1, criterion value 19.0111
+Step 3, added column 31, criterion value 17.6866
+Step 4, added column 40, criterion value 16.6344
+Step 5, added column 59, criterion value 15.9184
+Step 6, added column 36, criterion value 14.823
+Step 7, added column 54, criterion value 14.7396
+Step 8, added column 77, criterion value 14.6504
+Step 9, added column 50, criterion value 14.2895
+Step 10, added column 29, criterion value 14.4552
+Final columns included:  1 17 29 31 36 40 50 54 59 77 
+Selected features for ecg mean: pleth_1:mean, lc_1:mean, pleth_3:mean, pleth_4:mean, temp_1:mean, pleth_3:kurtosis, pleth_6:meandiff, temp_3:var, pleth_5:skewness, pleth_2:skewness
+Running sequentialfs for ecg stddev...
+Start forward sequential feature selection:
+Initial columns included:  none
+Columns that can not be included:  none
+Step 1, added column 1, criterion value 2764.87
+Step 2, added column 25, criterion value 2117.77
+Step 3, added column 31, criterion value 1772.57
+Step 4, added column 17, criterion value 1607.88
+Step 5, added column 59, criterion value 1394.15
+Step 6, added column 42, criterion value 1233.79
+Step 7, added column 19, criterion value 1146.33
+Step 8, added column 9, criterion value 1064.1
+Step 9, added column 47, criterion value 928.316
+Step 10, added column 15, criterion value 864.145
+Final columns included:  1 9 15 17 19 25 31 42 47 59 
+Selected features for ecg stddev: lc_1:mean, pleth_2:mean, pleth_3:mean, pleth_1:mean, temp_1:mean, pleth_4:meanfreq, pleth_1:meanfreq, lc_2:mean, pleth_5:mean, lc_2:skewness
+* Stage selectfeatures completed in 01:50:45.574.
+* Results for stage 'selectfeatures' saved in '~/repos/is/data/selected_features.mat'.
+*** END STAGE selectfeatures ***

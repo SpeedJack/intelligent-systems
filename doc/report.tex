@@ -1,0 +1,40 @@
+\documentclass[a4paper,12pt]{report}
+
+\usepackage{unipi}
+
+\course{Computer Engineering}
+\class{Intelligent Systems}
+\title{Using PPG signals in intelligent systems}
+\subtitle{Course Project}
+\authors{Niccolò Scatena}
+\academicyear{2021/2022}
+
+\includeonly{%
+	abstract,
+	chapters/intro,
+	chapters/dataset,
+	chapters/ecg,
+	chapters/activity,
+	chapters/fuzzy,
+	chapters/cnn,
+	chapters/rnn,
+}
+
+\begin{document}
+
+\maketitle
+\include{abstract}
+
+\microtypesetup{protrusion=false}
+\tableofcontents
+\microtypesetup{protrusion=true}
+
+\include{chapters/intro}
+\include{chapters/dataset}
+\include{chapters/ecg}
+\include{chapters/activity}
+\include{chapters/fuzzy}
+\include{chapters/cnn}
+\include{chapters/rnn}
+
+\end{document}

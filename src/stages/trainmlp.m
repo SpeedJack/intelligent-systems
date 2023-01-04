@@ -27,6 +27,7 @@ function trained = trainmlp(prevData, varargin)
 		hiddenSizes = prevData.hyperoptmlp.hiddenSizes;
 		hyperParams = prevData.hyperoptmlp.bestPoint;
 	end
+	hiddenSizes = hiddenSizes(hiddenSizes > 0);
 
 	net = fitnet(hiddenSizes, trainingFunction);
 	net.divideFcn = 'dividerand';

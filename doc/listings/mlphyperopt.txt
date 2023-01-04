@@ -1,0 +1,17 @@
+Results for ECG MEAN (no windowed):
+	Best training function: trainbr
+	Best n. of hidden units: 40
+	Test performance: 5621.415283
+Results for ECG STDDEV (no windowed):
+	Best training function: trainlm
+	Best n. of hidden units: 25
+	Test performance: 132658.172867
+
+Results for ECG MEAN (windowed):
+	Best training function: trainlm
+	Best n. of hidden units: 50
+	Test performance: 6307.192785
+Results for ECG STDDEV (windowed):
+	Best training function: trainlm
+	Best n. of hidden units: 130
+	Test performance: 68048.958300

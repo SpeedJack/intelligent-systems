@@ -1,0 +1,5 @@
+# Original SVG images
+*.svg
+
+# GIMP project files
+*.xcf

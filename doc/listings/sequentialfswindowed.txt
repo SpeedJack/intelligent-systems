@@ -1,0 +1,31 @@
+*** STAGE selectfeatures ***
+Preparing data for sequentialfs...done!
+Running sequentialfs for ecg mean...
+Start forward sequential feature selection:
+Initial columns included:  none
+Columns that can not be included:  none
+Step 1, added column 15, criterion value 20.7227
+Step 2, added column 23, criterion value 19.4214
+Step 3, added column 1, criterion value 17.506
+Step 4, added column 28, criterion value 14.9511
+Step 5, added column 8, criterion value 13.1427
+Step 6, added column 41, criterion value 12.2088
+Step 7, added column 10, criterion value 10.8689
+Final columns included:  1 8 10 15 23 28 41 
+Selected features for ecg mean: pleth_1:mean, pleth_2:mean, lc_1:mean, pleth_3:mean, lc_2:mean, pleth_5:mean, lc_2:meanfreq
+Running sequentialfs for ecg stddev...
+Start forward sequential feature selection:
+Initial columns included:  none
+Columns that can not be included:  none
+Step 1, added column 1, criterion value 2759.4
+Step 2, added column 23, criterion value 2086.92
+Step 3, added column 51, criterion value 1458.86
+Step 4, added column 15, criterion value 831.659
+Step 5, added column 35, criterion value 550.115
+Step 6, added column 8, criterion value 317.131
+Step 7, added column 28, criterion value 266.244
+Final columns included:  1 8 15 23 28 35 51 
+Selected features for ecg stddev: lc_1:mean, pleth_2:mean, temp_1:mean, pleth_1:mean, pleth_4:mean, lc_2:mean, pleth_3:mean
+* Stage selectfeatures completed in 23:55:24.668.
+* Results for stage 'selectfeatures' saved in '~/repos/is/data/selected_features_windowed.mat'.
+*** END STAGE selectfeatures ***

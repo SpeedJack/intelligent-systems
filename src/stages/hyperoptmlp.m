@@ -8,8 +8,8 @@ function results = hyperoptmlp(prevData, varargin)
 	p.addParameter('target', 'mean', validTarget);
 	p.addParameter('trainParams', struct(), @isstruct);
 	p.addParameter('optimizableVars', [], validVars);
-	p.addParameter('maxEvaluations', 500, validPositiveInt);
-	p.addParameter('seedPoints', 20, validPositiveInt);
+	p.addParameter('maxEvaluations', 100, validPositiveInt);
+	p.addParameter('seedPoints', 10, validPositiveInt);
 
 	p.parse(prevData, varargin{:});
 
@@ -20,7 +20,7 @@ function results = hyperoptmlp(prevData, varargin)
 	optimizableVars = p.Results.optimizableVars;
 	maxEvaluations = p.Results.maxEvaluations;
 	seedPoints = p.Results.seedPoints;
-	featureMatrix = prevData.featureMatrix;
+	featureMatrix = prevData.buildfeaturematrix;
 	if strcmp(target, 'mean')
 		targets = prevData.extracttargets.ecgMean;
 	else
@@ -35,14 +35,14 @@ function results = hyperoptmlp(prevData, varargin)
 	fprintf('Starting hyperparameters optimization...\n');
 
 	bayesoptResults = bayesopt(minimizeFcn, optimizableVars, 'IsObjectiveDeterministic', false, ...
-		'AquisitionFunctionName', 'expected-improvement-plus', 'UseParallel', true, ...
+		'AcquisitionFunctionName', 'expected-improvement-plus', 'UseParallel', true, ...
 		'MaxObjectiveEvaluations', maxEvaluations, 'NumSeedPoints', seedPoints, ...
 		'XConstraintFcn', @xconstraint);
 
 	results.bayesoptResults = bayesoptResults;
-	bp = bestPoint(bayesoptResults);
-	result.hiddenSizes = [bp.hiddenUnits1, bp.hiddenUnits2, bp.hiddenUnits3];
-	result.hiddenLayers = bp.hiddenLayers;
+	bp = bestPoint(bayesoptResults, 'Criterion', 'min-observed');
+	results.hiddenSizes = [bp.hiddenUnits1, bp.hiddenUnits2, bp.hiddenUnits3];
+	results.hiddenLayers = bp.hiddenLayers;
 	results.bestPoint = removevars(bp, {'hiddenLayers', 'hiddenUnits1', 'hiddenUnits2', 'hiddenUnits3'});
 end
 
@@ -50,7 +50,8 @@ function tf = xconstraint(X)
 	tf1 = X.hiddenLayers == 1 & X.hiddenUnits2 == 0 & X.hiddenUnits3 == 0;
 	tf2 = X.hiddenLayers == 2 & X.hiddenUnits2 > 0 & X.hiddenUnits3 == 0;
 	tf3 = X.hiddenLayers == 3 & X.hiddenUnits2 > 0 & X.hiddenUnits3 > 0;
-	tf = tf1 | tf2 | tf3;
+	tf4 = X.hiddenUnits3 < X.hiddenUnits2 & X.hiddenUnits2 < X.hiddenUnits1;
+	tf = (tf1 | tf2 | tf3) & tf4;
 end
 
 function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
@@ -83,7 +84,7 @@ function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
 		net.trainParam.showWindow = false;
 		net.trainParam.showCommandLine = false;
 		net.trainParam.show = NaN;
-		net.trainParam.epochs = 100000;
+		net.trainParam.epochs = 1000;
 		net.trainParam.time = Inf;
 		for f = fieldnames(trainParams)'
 			net.trainParam.(f{1}) = trainParams.(f{1});

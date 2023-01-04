@@ -86,7 +86,7 @@ result = runstages(findcorrelatedfeaturesStage_win);
 corrFig = result.correlationHeatmap;
 corrFig.Name = corrFig.Name + " (windowed)";
 corrFig.Children.Title = corrFig.Children.Title + " (windowed)";
-exportfigure(corrFig, 'full-correlation-matrix-windowed-250', [18 18 1665 1665]);
+exportfigure(corrFig, 'full-correlation-matrix-windowed', [18 18 1665 1665]);
 if SHOW_FIGURES
 	corrFig.Visible = 'on';
 	fprintf('Press a key to continue...');

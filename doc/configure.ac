@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([is-doc], [1.0.0], [https://github.com/SpeedJack/intelligent-systems])
-AC_CONFIG_SRCDIR([documentation.tex])
+AC_CONFIG_SRCDIR([report.tex])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -19,10 +19,10 @@ AC_LATEX_CLASS_BEAMER
 AC_LATEX_PACKAGE_FONTENC
 AC_LATEX_PACKAGE_AMSMATH
 AC_LATEX_PACKAGES_REQUIRE([babel, inputenc, lmodern, csquotes, microtype,
-	geometry, etoolbox, suffix, minibox, pdflscape, xcolor, graphicx,
-	float, titlesec, caption, subcaption, tcolorbox, interval, array,
-	makecell, enumitem, listings, nameref, varioref, hyperref, biblatex,
-	gitinfo2])
+	geometry, etoolbox, suffix, multicol, minibox, pdflscape, xcolor,
+	graphicx, float, titlesec, caption, subcaption, tcolorbox, interval,
+	array, makecell, enumitem, listings, nameref, varioref, hyperref,
+	biblatex, gitinfo2])
 
 # Checks for libraries.
 

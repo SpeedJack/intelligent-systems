@@ -1,0 +1,48 @@
+\section{Data augmentation}\label{sec:augmentdata}
+
+The provided data is not sufficient to train the intelligent systems required
+by the Project Specifications: there are only 22 subjects recorded during 3
+different activities, so there are only a total of 66 recordings available
+(plus one more, after the \texttt{fixdata} stage).
+
+Data augmentation is performed by the \texttt{augmentdata} stage. I considered
+several methods for data augmentation:
+\begin{enumerate}
+\item Data augmentation by \standout{adding some noise or distorsions} to
+	available signals.
+\item \emph{Feature} augmentation using an \standout{autoencoder}.
+\item Data augmentation via a \standout{(Conditional) (Wasserstein) Generative
+	Adversarial Network} (CW-GAN).
+\item Data augmentation via \standout{random subsampling}.
+\end{enumerate}
+
+The first method was discarded because I need to extract several dozen of data
+from each recording to have a fair amount of data for the purposes of this
+project: the dataset after the augmentation would be composed of different
+groups of similar data, and the intelligent systems would probably learn to
+predict the group of the data instead of generalizing, leading to overfitting.
+
+The second method has the same issue: the autoencoder would create various
+feature matrices from the same recordings, creating different groups of feature
+matrices with similar statistical characteristics.
+
+The third method is too complex, and would probably require a lot of time to
+generate the new signals. Moreover, it is too hard to determine \emph{a priori}
+the quality of the generated signals via this method. Generated signals may be
+too artificial to be used to represent real world signals: it's a risky
+approach.
+
+I chose to go with the forth method. Extracting random samples from the
+more-than-8-minutes-long recordings is a simple and secure approach: data is
+real, not artificial, and even if the intelligent systems developed in this
+project are not tied to a specific purpose, using more that 8 minutes of data
+to estimate ECG/activity is probably too much for any purpose (I would expect
+an intelligent system to be able to ``say something'' in less than 8 minutes).
+
+So, the \texttt{augmentdata} stage extracts several random subsamples from the
+original 66 (67) samples. Each subsample has a variable duration between
+25 and 40 seconds (this is done in order to let the intelligent systems to
+generalize over the duration of the signals, so they can learn to estimate
+ECG/activity independently from the exact duration of the signal), and 2000
+samples are extracted \emph{from each activity}, for a total of \standout{6000
+samples} available after data augmentation.
