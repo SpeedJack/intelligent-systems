@@ -16,11 +16,12 @@ several methods for data augmentation:
 \item Data augmentation via \standout{random subsampling}.
 \end{enumerate}
 
-The first method was discarded because I need to extract several dozen of data
+The first method was discarded because I need to extract several dozen samples
 from each recording to have a fair amount of data for the purposes of this
 project: the dataset after the augmentation would be composed of different
-groups of similar data, and the intelligent systems would probably learn to
-predict the group of the data instead of generalizing, leading to overfitting.
+groups of similar samples, and the intelligent systems would probably learn to
+predict the group of the sample instead of generalizing, leading to
+overfitting.
 
 The second method has the same issue: the autoencoder would create various
 feature matrices from the same recordings, creating different groups of feature
@@ -32,7 +33,7 @@ the quality of the generated signals via this method. Generated signals may be
 too artificial to be used to represent real world signals: it's a risky
 approach.
 
-I chose to go with the forth method. Extracting random samples from the
+I chose to go with the fourth method. Extracting random samples from the
 more-than-8-minutes-long recordings is a simple and secure approach: data is
 real, not artificial, and even if the intelligent systems developed in this
 project are not tied to a specific purpose, using more that 8 minutes of data

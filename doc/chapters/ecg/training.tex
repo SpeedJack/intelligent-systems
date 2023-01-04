@@ -1,8 +1,8 @@
 \section{MLPs training}\label{sec:mlptraining}
 
-Script \texttt{mlptrain.m} performs the training for both networks using the
+Script \texttt{mlptrain.m} performs the training of both networks using the
 architectures selected in \secref{subsec:mlpbayesopt} and the training
-algorithm and feature extraction method selected in
+algorithms and feature extraction methods selected in
 \secref{subsec:mlphyperopt}.
 
 \vfigref{fig:mlptrainperformance} shows the training performance plots for both
@@ -41,16 +41,16 @@ dataset.
 	results.}\label{fig:mlpstdregression}
 \end{figure}
 
-The ECG's mean estimation network performarce are not so good, as shown in
-\vfigref{fig:mlpmeanregression}: we have \(R = 0.85045\) for the test set and
-\(R = 0.85761\) for the entire dataset. This latter network will be the subject
-of \chref{ch:cnn}.
+The ECG's mean estimation network performances are not so good (but still
+valuable), as shown in \vfigref{fig:mlpmeanregression}: we have \(R = 0.85045\)
+for the test set and \(R = 0.85761\) for the entire dataset. This latter
+network will be the subject of \chref{ch:cnn}.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=\textwidth]{mlpmeanregression}
 	\caption{The regression plot for the ECG's mean estimation network
-	shows not-so-good results.}\label{fig:mlpmeanregression}
+	shows good, but not excellent, results.}\label{fig:mlpmeanregression}
 \end{figure}
 
 \vfigref{fig:mlperrorhists} shows the error histograms for both networks.

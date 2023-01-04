@@ -1,7 +1,7 @@
 \section{Feature selection}\label{sec:featureselection}
 
 A requirement for the Task 3.1 of the Project Specification is to select a
-maximum of 10 ``good'' features to be used for the estimation of ECG mean and
+maximum of 10 ``good'' features to be used for the estimation of ECG's mean and
 standard deviation. The initial list of features used is the one defined in the
 \texttt{getfeatures} stage and described in \secref{subsec:getfeaturesstage}.
 
@@ -20,8 +20,8 @@ correlation matrix for the ``Normal'' case is shown
 \vpageref{pdfinc:corrmatrix}. The correlation matrix for the ``Windowed'' case
 is shown \vpageref{pdfinc:corrmatrixwindowed}. Those figures are quite big:
 they can be zoomed since they are vectorial images. Anyway, for convenience,
-\figref{fig:corrmatrixzoom} shows a zoom of the correlation matrices for the
-both cases.
+\figref{fig:corrmatrixzoom} shows a zoom of the correlation matrices for both
+cases.
 
 \begin{figure}[!htb]
 	\centering
@@ -61,7 +61,7 @@ select only 7 features instead of 10. This is because the test network used by
 \code{sequentialfs} has a number of hidden neurons equal to \(\max
 \{5,\lfloor\frac{N}{2}\rfloor\}\) where \(N\) is the number of input neurons
 which is higher in the ``Windowed'' case (there is an input neuron for each
-window for each feature) leading to a longer execution time for
+window for each feature), leading to a longer execution time for
 \code{sequentialfs}.
 
 \lstinputlisting[language={}, label={lst:sequentialfsnormal}, caption={Results
@@ -69,7 +69,7 @@ of \code{sequentialfs} execution for the ``Normal''
 case.}]{sequentialfsnormal.txt}
 \lstinputlisting[language={}, label={lst:sequentialfswindowed},
 caption={Results of \code{sequentialfs} execution for the ``Windowed''
-cases.}]{sequentialfswindowed.txt}
+case.}]{sequentialfswindowed.txt}
 
 For convenience, the list of selected features is also shown in
 \tableref{table:selectedfeatures}.

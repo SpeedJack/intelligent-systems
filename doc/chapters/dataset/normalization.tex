@@ -6,10 +6,10 @@ developed a \texttt{normalizefeatures} stage to manually normalize the features
 in the range \(\interval{-1}{1}\) and I've removed the pre-processing step from
 every neural network developed in this work.
 
-The reason for this, is that the normal pre-processing step do not perform the
-correct normalization in the windowed case: I want the value \(-1\) to map the
-\emph{absolute minimum} between all the values in all the windows in which the
-feature is extracted. If I let the standard pre-processing step to perform the
-normalization instead, since it is not aware of the overlapped windows in which
-the signal is divided, I would get that \emph{each minimum local to a window}
-gets the value \(-1\), which is not what I want.
+The reason for this choice is that the normal pre-processing step do not
+perform the correct normalization in the windowed case: I want the value \(-1\)
+to map the \emph{absolute minimum} between all the values in all the windows in
+which the feature is extracted. If I let the standard pre-processing step to
+perform the normalization instead, since it is not aware of the overlapped
+windows in which the signal is divided, I would get that \emph{each minimum
+local to a window} gets the value \(-1\), which is not what I want.

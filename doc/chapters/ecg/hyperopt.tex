@@ -9,7 +9,7 @@ network: the only effect was the increase/decrease of training time.
 
 The hyperparameters to be optimized are the following:
 \begin{itemize}
-\item The architecture of the network (then number of hidden layers and the
+\item The architecture of the network (the number of hidden layers and the
 	number of hidden units in each layer);
 \item The selection between the ``Normal'' and ``Windowed'' feature extraction
 	methods;
@@ -40,7 +40,7 @@ The list of training algorithms tested is the following:
 \item[trainbfg] The Broyden-Fletcher-Goldfarb-Shanno quasi-Newton
 	backpropagation algorithm;
 \item[trainrp] The resilient backpropagation algorithm;
-\item[trainscg] The scaled conjugate gradient backpropagation algorithm.
+\item[trainscg] The scaled conjugate gradient backpropagation algorithm;
 \item[traincgb] The conjugate gradient backpropagation algorithm;
 \item[trainoss] The one-step secant backpropagation algorithm;
 \item[traingdx] The gradient descent with momentum backpropagation algorithm;
@@ -52,9 +52,9 @@ Moreover, each configuration is tested with different values for the number of
 hidden neurons.
 
 The \texttt{mlphyperopt.m} script finally compares the results from each
-configuration and prints the best one. The comparison is made on the
-performances obtained on the test sets in order to have an unbiased comparison
-of the performances.
+configuration and prints the best one. The comparison is made on the results
+obtained on the test sets in order to have an unbiased comparison of the
+performance.
 
 For algorithm \code{trainbr}, which does not requires a validation set, data
 has been partitioned randomly as follows:
@@ -78,19 +78,19 @@ Levenberg-Marquardt backpropagation algorithm (\code{trainlm}). Also, from the
 output, we can have an idea on the sizes of the network architectures needed in
 terms of number of hidden units.
 
-\lstinputlisting[language={}, label={lst:mlphyperopt}, caption={Results for the
+\lstinputlisting[language={}, label={lst:mlphyperopt}, caption={Result of the
 execution of the \texttt{mlphyperopt.m} script.}]{mlphyperopt.txt}
 
 \subsection{Bayesian optimization of the network
 architecture}\label{subsec:mlpbayesopt}
 
 The exact architecture of the two networks is selected using the script
-\texttt{mlpbayesopt.m}. This script uses the \texttt{hyperoptmlp} stage that
-uses the Bayesian optimization algorithm (\code{bayesopt}) to minimize the
-\code{KFoldCVLoss} function which performs a 5-fold cross-validation.
-\code{bayesopt} will try different combinations of the 4 parameters that
-defines the architecture of the network in an effort to find the best
-combination (ranges have been chosen based on the results of the
+\texttt{mlpbayesopt.m}. This script uses the \texttt{hyperoptmlp} stage which
+in turn uses the Bayesian optimization algorithm (\code{bayesopt}) to minimize
+the \code{KFoldCVLoss} function which performs a \standout{5-fold
+cross-validation}. \code{bayesopt} will try different combinations of the 4
+parameters that defines the architecture of the network in an effort to find
+the best combination (ranges have been chosen based on the results of the
 \code{mlphyperopt.m} script shown in \lstref{lst:mlphyperopt}):
 \begin{description}
 \item[hiddenLayers] The number of hidden layers. Range:
