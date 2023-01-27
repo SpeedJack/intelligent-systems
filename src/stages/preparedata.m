@@ -1,6 +1,16 @@
-function dataset = preparedata(inputFile)
+function dataset = preparedata(inputFile, varargin)
 % load dataset in a structure. Example field: dataset.s15.walk will contain a
 % timetable with timeseries+targets for s15 during walk.
+	p = inputParser;
+	validFilePath = @(x) ischar(x) || (isscalar(x) && isstring(x));
+	validPositiveIntArr = @(x) isnumeric(x) && all(x > 0) && all(x == round(x)) && (isvector(x) || isscalar(x) || isempty(x));
+	p.addRequired('inputFile', validFilePath);
+	p.addParameter('includedSubjects', [], validPositiveIntArr);
+	p.parse(inputFile, varargin{:});
+
+	inputFile = p.Results.inputFile;
+	includedSubjects = p.Results.includedSubjects;
+
 	projectRoot = currentProject().RootFolder;
 
 	% search for dataset.zip
@@ -32,6 +42,10 @@ function dataset = preparedata(inputFile)
 		filename = fullfile(datasetFiles(i).folder, datasetFiles(i).name);
 		tokens = regexp(filename, "s([1-9][0-9]*)_(" + strjoin(activities, '|') + ")_timeseries.csv$", 'tokens');
 		subject = str2num(string(tokens{1}(1)));
+		if ~isempty(includedSubjects) && ~ismember(subject, includedSubjects)
+			% used by testis.m to avoid load the entire dataset
+			continue;
+		end
 		activity = string(tokens{1}(2));
 		fprintf("Loading data for subject %d, activity '%s'...\n", subject, activity);
 

@@ -63,6 +63,7 @@ function cvce = KFoldCVLoss(X, targets, cv, trainFunction, trainParams, vars)
 	end
 	vars = removevars(vars, {'hiddenLayers', 'hiddenUnits1', 'hiddenUnits2', 'hiddenUnits3'});
 
+	% one-hot-encoding
 	Y = logical(full(ind2vec(targets + 1)));
 
 	ce = [];
