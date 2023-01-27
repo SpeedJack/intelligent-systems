@@ -1,4 +1,5 @@
 function augmented = augmentdata(dataset, varargin)
+% Perform data augmentation via random subsampling.
 	p = inputParser;
 	validDuration = @(x) isscalar(x) && isduration(x) && (x > 0);
 	validPositiveInt = @(x) isscalar(x) && isnumeric(x) && (x > 0) && (x == round(x));
@@ -12,11 +13,14 @@ function augmented = augmentdata(dataset, varargin)
 	p.parse(dataset, varargin{:});
 
 	dataset = p.Results.dataset;
-	samplesPerActivity = p.Results.samplesPerActivity;
+	samplesPerActivity = p.Results.samplesPerActivity; % how many samples are needed per activity
+	% min and max duration of extracted samples...
 	minDuration = floor(p.Results.minDuration / milliseconds(2));
 	maxDuration = ceil(p.Results.maxDuration / milliseconds(2));
+	% ...or use a fixed number of time steps for each sample
 	fixedTimeSteps = p.Results.fixedTimeSteps;
 	timeSteps = p.Results.timeSteps;
+	% RNG
 	rngSeed = p.Results.rngSeed;
 
 	augmented.subjectCount = samplesPerActivity;
@@ -25,6 +29,16 @@ function augmented = augmentdata(dataset, varargin)
 	fprintf('Using seed: %d.\n', rngSeed);
 	rng(rngSeed);
 
+	% For each activity, we need to select randomly a subject where to
+	% extract the next subsample. To do this, a random integer is later
+	% (last 'for' loop) compared with values computed here. Here we extract
+	% the number of time steps in each record, and also compute th total
+	% number of time steps available for each activity. After, the random
+	% integer (from 1 to the total just computed) extracted, will be
+	% compared to the cumulative sum of the time steps in order to select
+	% randomly a subject. Note that subject that have longer records will
+	% be selected for subsampling more often (this is wanted: they have
+	% more data).
 	rowCounts = {};
 	totalRows = [];
 	for a = dataset.activities
@@ -45,6 +59,7 @@ function augmented = augmentdata(dataset, varargin)
 		end
 	end
 
+	% Now perform subsampling, for each activity.
 	for a = 1:length(dataset.activities)
 		activity = dataset.activities{a};
 		fprintf('Augmenting data via subsampling for activity ''%s'' (samplesPerActivity = %d)...', activity, samplesPerActivity);
@@ -52,18 +67,23 @@ function augmented = augmentdata(dataset, varargin)
 			if mod(curSample, 100) == 0
 				fprintf('%d...', curSample);
 			end
+			% select randomly a subject from which to extract next
+			% sample for current activity
 			select = randi(totalRows(a));
 			actRowCounts = rowCounts{a};
 			rowCountIndex = find(cumsum(actRowCounts(:, 1)) >= select, 1);
 			subjectIndex = actRowCounts(rowCountIndex, 2);
 			currentSubject = dataset.("s" + string(subjectIndex));
 			currentTable = currentSubject.(activity);
+			% now select randomly the duration that the sample
+			% must have, based on user provided limits.
 			rowCount = actRowCounts(subjectIndex, 1);
 			if fixedTimeSteps
 				sampleRowCount = timeSteps;
 			else
 				sampleRowCount = randi([minDuration, maxDuration]);
 			end
+			% select start index randomly
 			startIndex = randi(rowCount - sampleRowCount);
 			endIndex = startIndex + sampleRowCount - 1;
 			augmented.("s" + string(curSample)).(activity) = currentTable(startIndex:endIndex, :);

@@ -1,4 +1,6 @@
 function exportfigure(figureObj, filename, varargin)
+% EXPORTFIGURE  Export a figure to a PDF file inside FIGURES_FOLDER. Uses
+%    vector graphics.
 	global EXPORT_FIGURES
 	global FIGURES_FOLDER
 	if ~EXPORT_FIGURES
@@ -20,15 +22,19 @@ function exportfigure(figureObj, filename, varargin)
 	if ~exist(figureDir, 'dir')
 		mkdir(figureDir);
 	end
+
+	% Resize the figure before exporting it
 	if ~isempty(sizes)
 		prevUnits = figureObj.Units;
 		prevOuterPos = figureObj.OuterPosition;
 		figureObj.Units = 'points';
 		figureObj.OuterPosition = sizes;
 	end
+
 	exportgraphics(figureObj, fullfile(figureDir, [filename '.pdf']),...
 		'ContentType', 'vector',...
 		'BackgroundColor', 'none');
+
 	if ~isempty(sizes)
 		figureObj.Units = prevUnits;
 		figureObj.OuterPosition = prevOuterPos;

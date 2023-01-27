@@ -1,4 +1,6 @@
 function normalized = normalizefeatures(features)
+% normalize features by scaling to [-1,1]. Min and max values are computed over
+% ALL windows.
 	varNames = fieldnames(features);
 	for varNameIndex = 1:length(varNames)
 		currentVar = varNames{varNameIndex};

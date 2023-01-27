@@ -1,4 +1,6 @@
 function analyzed = findcorrelatedfeatures(features, varargin)
+% Find features with too high correlation coefficient. Also prepare an heatmap
+% to show correlation between features.
 	p = inputParser;
 	validCorrelationLimit = @(x) isscalar(x) && isnumeric(x) && (x >= 0) && (x <= 1);
 	p.addRequired('features', @isstruct);
@@ -8,6 +10,7 @@ function analyzed = findcorrelatedfeatures(features, varargin)
 	features = p.Results.features;
 	correlationLimit = p.Results.correlationLimit;
 
+	% build a single matrix from features.
 	fprintf('Merging features into a single matrix...');
 	featureMatrix = [];
 	names = {};
@@ -25,6 +28,10 @@ function analyzed = findcorrelatedfeatures(features, varargin)
 					error('IS:STAGE:findcorrelatedfeatures:wrongNumberOfWindows', ...
 						'Error: the number of windows in the feature matrix is not a multiple of the number of windows in the feature vector for %s.', strcat(currentVar, ':', featureFunc))
 				end
+				% if a feature (like temp_3) is extracted with
+				% different number of features, we need to
+				% repeat its value to 'simulate' that it has
+				% been extracted for all windows.
 				repeatFactor = size(featureMatrix, 1) / size(featureVector, 1);
 				featureVector = repelem(featureVector, repeatFactor);
 				fprintf('(%s repeated %d times)...', ...
@@ -39,6 +46,7 @@ function analyzed = findcorrelatedfeatures(features, varargin)
 	fprintf('Calculating correlation matrix...');
 	analyzed.correlationMatrix = abs(corrcoef(featureMatrix));
 
+	% heatmap
 	analyzed.correlationHeatmap = figure('Name', 'Correlation Matrix', 'NumberTitle', 'off', 'Visible', 'off');
 	hm = heatmap(analyzed.correlationMatrix, 'Parent', analyzed.correlationHeatmap);
 	hm.Title = 'Correlation Matrix';
@@ -50,6 +58,8 @@ function analyzed = findcorrelatedfeatures(features, varargin)
 	hm.YDisplayLabels = names;
 	fprintf('done.\n');
 
+	% Search for too high correlation. Prepare a list of correlated
+	% features.
 	fprintf('Finding correlated features (correlation coefficient > %d):', correlationLimit);
 	[indexes, ~] = find(tril(analyzed.correlationMatrix > correlationLimit, -1));
 	indexes = unique(sort(indexes));

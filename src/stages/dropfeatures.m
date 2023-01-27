@@ -1,4 +1,5 @@
 function reduced = dropfeatures(features, dropList, varargin)
+% Drop (or keep) features from structure passed in 'features'.
 	p = inputParser;
 	validMode = @(x) any(validatestring(x, {'drop', 'keep'}));
 	p.addRequired('features', @isstruct);
@@ -32,21 +33,3 @@ function reduced = dropfeatures(features, dropList, varargin)
 
 	fprintf('Dropped %d features: %s.\n', numel(dropped), strjoin(dropped, ', '));
 end
-
-% function reduced = dropfeatures(features, todrop)
-% 	reduced = features;
-%
-% 	for i = 1:numel(todrop)
-% 		toRemove = todrop{i};
-% 		if isnumeric(toRemove)
-% 			toRemoveName = features.names{toRemove};
-% 		else
-% 			toRemoveName = toRemove;
-% 			toRemove = find(strcmp(features.names, toRemove));
-% 		end
-% 		reduced.names(toRemove) = [];
-% 		reduced.featureMatrix(:, toRemove) = [];
-% 	end
-%
-% 	fprintf('Dropped %d features: %s.\n', size(features, 2) - size(reduced, 2), strjoin(setdiff(features.names, reduced.names), ', '));
-% end

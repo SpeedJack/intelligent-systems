@@ -18,6 +18,8 @@ configs = {{'grid', 4, 'gbellmf', 'epochs', 100};
 minTrainError = [];
 minTestError = [];
 
+%% -- for each defined config, use generatefis stage to build and tune the FIS -- %%
+
 for config = configs'
 	config = config{1};
 	suffix = strjoin(string(config), '_');
@@ -30,6 +32,8 @@ for config = configs'
 	minTrainError = [minTrainError; min(result.trainError)];
 	minTestError = [minTestError; min(result.chkError)];
 end
+
+%% -- compare performances -- %%
 
 for i = 1:length(configs)
 	config = configs{i};

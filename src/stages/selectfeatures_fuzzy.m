@@ -1,4 +1,6 @@
 function selectedFeatures = selectfeatures_fuzzy(prevData, varargin)
+% Adapted from selectfeatures.m, it uses backward sequentialfs to find the best
+% features used in the activity MLP.
 	p = inputParser;
 	validPositiveInt = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x == round(x));
 	p.addRequired('prevData', @isstruct);
@@ -23,6 +25,7 @@ function selectedFeatures = selectfeatures_fuzzy(prevData, varargin)
 		features = prevData.extractfeatures;
 	end
 
+	% see selectfeatures.m for comments
 	fprintf('Preparing data for sequentialfs...');
 	windows = {};
 	featureNames = {};
@@ -45,6 +48,7 @@ function selectedFeatures = selectfeatures_fuzzy(prevData, varargin)
 	end
 	fprintf('done!\n');
 
+	% cross-validation must ensure stratification now
 	stratifyGroups = findgroups(activity);
 	cv = cvpartition(stratifyGroups, 'KFold', cvnum, 'Stratify', true);
 
@@ -71,6 +75,7 @@ function sfsResult = runsequentialfs(windows, target, featureCount, cv, nfeature
 end
 
 function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
+% as it was in selectfeatures.m
 	winCount = (length(varargin) / 2) - 1;
 	inputTrain = [];
 	trainIndexes = trainMatrix(1, :);
@@ -92,18 +97,20 @@ function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
 	end
 	targetsTest = varargin{winCount + 2}';
 
+	% uses MLP optimal arch defined for activity, but scale based on input
+	% size
 	hidden1 = ceil((165*size(inputTrain, 1))/45);
 	hidden2 = ceil((31*size(inputTrain, 1))/45);
 
-	net = patternnet([hidden1 hidden2]);
-	net.input.processFcns = {'removeconstantrows'};
+	net = patternnet([hidden1 hidden2]); % classification
+	net.input.processFcns = {'removeconstantrows'}; % already normalized
 	net.output.processFcns = {'removeconstantrows', 'mapminmax'};
 	net.divideParam.trainRatio = 1;
 	net.divideParam.valRatio = 0;
 	net.divideParam.testRatio = 0;
-	net.divideFcn = 'dividetrain';
+	net.divideFcn = 'dividetrain'; % all train, sequentialfs creates sets
 	net.trainFcn = 'trainscg';
-	net.performFcn = 'crossentropy';
+	net.performFcn = 'crossentropy'; % classification
 	net.trainParam.showWindow = false;
 	net.trainParam.showCommandLine = false;
 	net.trainParam.epochs = 1000;
@@ -116,6 +123,8 @@ function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
 	if license('test', 'Distrib_Computing_Toolbox') && gpuDeviceCount > 0
 		useGPU = 'yes';
 	end
+
+	% train and test
 
 	net = train(net, inputTrain, targetsTrain, 'useGPU', useGPU);
 

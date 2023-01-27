@@ -1,3 +1,14 @@
+% This class represents a stage.
+% property Stage.Function will contain a function handle to the function that
+% must be executed to run the stage.
+% OutputFile will contain the path to the file where cached results must be
+% saved. Stage.Output, instead, is an in-memory cache for the output (to avoid
+% to continuosly load from file).
+% InputStages contains the input stages for the stage. Their output will be
+% loaded before running the stage and passed as input to the function
+% Stage.Function.
+% AdditionalParams is used for additional parameters passed to the stage
+% through the Stage.addParams() method.
 classdef Stage < handle
 	properties (Access = private)
 		Function(1,1) function_handle = @NOP
@@ -46,11 +57,14 @@ classdef Stage < handle
 		end
 
 		function addDatasetParam(obj)
+			% convenience method to add the path to dataset.zip for
+			% the first stage (preparedata)
 			projectRoot = currentProject().RootFolder;
 			obj.AdditionalParams = [obj.AdditionalParams {fullfile(projectRoot, 'dataset.zip')}];
 		end
 
 		function name = get.Name(obj)
+			% the name of the stage is the name of the function
 			name = func2str(obj.Function);
 		end
 
@@ -59,8 +73,11 @@ classdef Stage < handle
 		end
 
 		function available = allInputsAvailable(obj)
+			% check if output is available for all input stages
+
 			for stage = obj.InputStages
 				if ~stage.OutputAvailable
+
 					available = false;
 					return;
 				end
@@ -69,6 +86,8 @@ classdef Stage < handle
 		end
 
 		function outdated = isOutdated(obj)
+			% recursively check if output is outdated (ie. if stage
+			% must be re-executed when using RunPolicy.OLD)
 			if ~obj.OutputAvailable && ~exist(obj.OutputFile, 'file')
 				outdated = true;
 				return;
@@ -88,8 +107,10 @@ classdef Stage < handle
 		end
 
 		function output = loadOutput(obj)
+			% Load output from file, into in-memory cache
 			if ~obj.OutputAvailable
 				obj.Output = load(obj.OutputFile);
+
 			end
 			output = obj.Output;
 		end
@@ -101,10 +122,13 @@ classdef Stage < handle
 		end
 
 		function inputData = getInputData(obj)
+			% Build input arguments for the stage using the outputs
+			% of the input stages
 			if ~obj.allInputsAvailable
 				error('IS:Stage:missingInput', 'Error: Missing input for stage ''%s''.', obj.Name);
 			end
 			if isempty(obj.InputStages)
+				% no input stages
 				inputData = [];
 				return;
 			end
@@ -113,16 +137,21 @@ classdef Stage < handle
 				inputData = stage.getOutput();
 				return;
 			end
-	
+
+			% multiple input stages, need to build a structure
 			inputData = struct();
 			for stage = obj.InputStages
 				if ~isfield(inputData, stage.Name)
 					inputData.(stage.Name) = {};
 				end
+				% build a cell array in case of name clashing
+				% (multiple input stages with same name)
 				inputData.(stage.Name){end+1} = stage.getOutput();
 			end
 			for f = fieldnames(inputData)'
 				f = f{1};
+				% if there is only one element in a cell array,
+				% get it out of the cell array
 				if numel(inputData.(f)) == 1
 					inputData.(f) = inputData.(f){1};
 				end
@@ -130,12 +159,15 @@ classdef Stage < handle
 		end
 
 		function output = run(obj)
+			% run the stage
 			inputData = obj.getInputData();
 			if isempty(inputData)
 				outputData = obj.Function(obj.AdditionalParams{:});
 			else
 				outputData = obj.Function(inputData, obj.AdditionalParams{:});
 			end
+
+			% save output to in-memory cache
 			if isstruct(outputData)
 				output = outputData;
 			else
@@ -143,17 +175,19 @@ classdef Stage < handle
 			end
 			obj.Output = output;
 
+			% save output to file
 			folder = fileparts(obj.OutputFile);
 			if ~exist(folder, 'dir')
 				mkdir(folder);
 			end
-	
+
 			save(obj.OutputFile, '-struct', 'output');
 
 			output = obj.getOutput();
 		end
 
 		function output = getOutput(obj, varargin)
+			% return (and load if necessary) output of the stage
 			p = inputParser;
 			p.addOptional('load', true, @(x) isscalar(x) && islogical(x));
 			p.parse(varargin{:});
@@ -176,6 +210,7 @@ classdef Stage < handle
 		end
 
 		function clearMemory(obj)
+			% clear in memory cache, recursively on input stages
 			obj.Output = struct();
 			for stage = obj.InputStages
 				stage.clearMemory();
@@ -186,4 +221,5 @@ end
 
 function NOP(varargin)
 	% does nothing
+
 end

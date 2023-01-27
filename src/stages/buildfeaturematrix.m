@@ -1,4 +1,5 @@
 function featureMatrix = buildfeaturematrix(features)
+% from feature structure to feature (single) matrix
 	featureMatrix = [];
 	varNames = fieldnames(features);
 	for varNameIndex = 1:length(varNames)

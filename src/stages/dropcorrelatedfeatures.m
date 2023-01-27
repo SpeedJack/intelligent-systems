@@ -1,4 +1,5 @@
 function reduced = dropcorrelatedfeatures(prevData)
+% remove correlated features from input structure.
 	if isfield(prevData, 'normalizefeatures')
 		features = prevData.normalizefeatures;
 	else

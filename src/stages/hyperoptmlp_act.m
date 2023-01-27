@@ -1,4 +1,5 @@
 function results = hyperoptmlp_act(prevData, varargin)
+% Adapted from hyperoptmlp.m to be used for activity MLP.
 	p = inputParser;
 	validPositiveInt = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x == round(x));
 	validVars = @(x) isvector(x) && isa(x, 'optimizableVariable');
@@ -24,6 +25,7 @@ function results = hyperoptmlp_act(prevData, varargin)
 	end
 	targets = prevData.extracttargets.activity;
 
+	% here stratification is important
 	stratifyGroups = findgroups(targets);
 	cv = cvpartition(stratifyGroups, 'KFold', 5, 'Stratify', true);
 
@@ -75,23 +77,31 @@ function cvce = KFoldCVLoss(X, targets, cv, trainFunction, trainParams, vars)
 		Ytest = Y(:, testIdx);
 		Ytargets = targets(:, trainIdx);
 
+		% patternnet, instead of fitnet. Of course, now is
+		% classification and not regression.
 		net = patternnet(hiddenSizes, trainFunction);
 		net.divideFcn = 'divideind';
 		net.divideMode = 'sample';
-		net.input.processFcns = {'removeconstantrows'};
+		net.input.processFcns = {'removeconstantrows'}; % already normalized
 		net.output.processFcns = {'removeconstantrows', 'mapminmax'};
-		net.performFcn = 'crossentropy';
+		net.performFcn = 'crossentropy'; % crossentropy is good for classification
 		net.trainParam.showWindow = false;
 		net.trainParam.showCommandLine = false;
 		net.trainParam.show = NaN;
 		net.trainParam.epochs = 1000;
 		net.trainParam.time = Inf;
 		for f = fieldnames(trainParams)'
+			% fixed
 			net.trainParam.(f{1}) = trainParams.(f{1});
 		end
 		for f = vars.Properties.VariableNames
+			% optimizable
 			net.trainParam.(f{1}) = vars.(f{1});
 		end
+
+		% random divide train set with stratification into actual train
+		% set and validation set. Test set already created by
+		% cvpartition.
 		[trainInd, valInd, ~] = stratifieddividerand(findgroups(Ytargets), 0.85, 0.15 ,0);
 		net.divideParam.trainInd = trainInd;
 		net.divideParam.valInd = valInd;

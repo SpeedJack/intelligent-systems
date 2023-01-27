@@ -1,4 +1,5 @@
 function trained = trainmlp(prevData, varargin)
+% train an MLP. For activity MLP, see trainmlp_act.m.
 	p = inputParser;
 	validPositiveIntVector = @(x) isnumeric(x) && isvector(x) && (x(1) > 0) && all(x >= 0) && all(x == round(x));
 	validTarget = @(x) ischar(x) && any(strcmp(x, {'mean', 'stddev'}));
@@ -13,7 +14,7 @@ function trained = trainmlp(prevData, varargin)
 
 	prevData = p.Results.prevData;
 	trainingFunction = p.Results.trainFunction;
-	target = p.Results.target;
+	target = p.Results.target; % used to select target from extracttargets
 	trainParams = p.Results.trainParams;
 	if isfield(prevData, 'mergefeaturematrix')
 		featureMatrix = prevData.mergefeaturematrix;
@@ -28,15 +29,16 @@ function trained = trainmlp(prevData, varargin)
 	hiddenSizes = p.Results.hiddenSizes;
 	hyperParams = table();
 	if isfield(prevData, 'hyperoptmlp')
-		hiddenSizes = prevData.hyperoptmlp.hiddenSizes;
+		% hyperopt executed. We can load optimized hyperparams
+		hiddenSizes = prevData.hyperoptmlp.hiddenSizes; % overwrite
 		hyperParams = prevData.hyperoptmlp.bestPoint;
 	end
-	hiddenSizes = hiddenSizes(hiddenSizes > 0);
+	hiddenSizes = hiddenSizes(hiddenSizes > 0); % remove zero size layers
 
-	net = fitnet(hiddenSizes, trainingFunction);
+	net = fitnet(hiddenSizes, trainingFunction); % regression
 	net.divideFcn = 'dividerand';
 	net.divideMode = 'sample';
-	net.input.processFcns = {'removeconstantrows'};
+	net.input.processFcns = {'removeconstantrows'}; % already normalized
 	net.output.processFcns = {'removeconstantrows', 'mapminmax'};
 	net.performFcn = 'mse';
 	net.trainParam.showWindow = false;
@@ -66,6 +68,7 @@ function trained = trainmlp(prevData, varargin)
 		useGPU = 'yes';
 	end
 
+	% train
 	[net, tr] = train(net, featureMatrix, targets, 'useParallel', 'yes', 'useGPU', useGPU);
 	trained.network = net;
 	trained.trainingRecord = tr;

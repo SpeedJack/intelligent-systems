@@ -1,5 +1,8 @@
 close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
+% Like in mlpbayesopt.m, but here we need 2 pretraining pipeline (as it was
+% needed in mlphyperopt_act.m).
+
 diaryon('mlpbayesopt_activity');
 
 optVars = [ ...

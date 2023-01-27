@@ -1,4 +1,5 @@
 function featureList = getfeatures
+% just a static list of features
 	featureFuncs = {
 		'mean';
 		'median';

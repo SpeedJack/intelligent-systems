@@ -19,10 +19,10 @@ function cnntrain(varargin)
 		defnum = str2num(defnum);
 	end
 	epochs = p.Results.epochs;
-	analyzeNet = p.Results.analyze;
+	analyzeNet = p.Results.analyze; % run analyzeNetwork()
 	valRatio = p.Results.valRatio;
 	testRatio = p.Results.testRatio;
-	removeOutliers = p.Results.removeOutliers;
+	removeOutliers = p.Results.removeOutliers; % not used actually
 
 	saveCnn = false;
 	defFunc = "cnndef";
@@ -30,11 +30,13 @@ function cnntrain(varargin)
 		defFunc = defFunc + string(defnum);
 		diaryon("cnntrain_" + defFunc);
 	else
+		% final CNN
 		diaryon('cnntrain');
 		saveCnn = true;
 	end
 	defFunc = str2func(defFunc);
 
+	% build and run pipeline
 	preparedataStage = Stage(@preparedata, 'dataset.mat');
 	preparedataStage.addDatasetParam();
 
@@ -44,7 +46,7 @@ function cnntrain(varargin)
 
 	augmentdataStage = Stage(@augmentdata, 'augmented_dataset_deep.mat');
 	augmentdataStage.addInputStages(fixdataStage);
-	augmentdataStage.addParams('fixedTimeSteps', true);
+	augmentdataStage.addParams('fixedTimeSteps', true); % all samples of same length
 	augmentdataStage.ClearMemoryAfterExecution = true;
 
 	extracttargetsStage = Stage(@extracttargets, 'targets_deep.mat');
@@ -55,6 +57,7 @@ function cnntrain(varargin)
 	dataset = result.augmentdata;
 	ecgStd = result.extracttargets.ecgStd;
 
+	% data cell array, to be used as input to the CNN (after set partitioning)
 	data = {};
 	for s = 1:dataset.subjectCount
 		currentSubject = dataset.("s" + string(s));
@@ -66,11 +69,13 @@ function cnntrain(varargin)
 	end
 
 	if removeOutliers
+		% not used, removes outliers in targets (and corresponding data)
 		[ecgStd, idx] = rmoutliers(ecgStd);
 		data = data(~idx);
 		fprintf('Removed %d outliers.\n', numel(idx));
 	end
 
+	% set partitioning in training, validation and test set
 	inputs = {[]; []; []};
 	targets = {[]; []; []};
 	if valRatio + testRatio > 0
@@ -95,8 +100,10 @@ function cnntrain(varargin)
 	end
 	fprintf('Training set size: %d\nValidation set size: %d\nTest set size: %d\n', numel(targets{1}), numel(targets{2}), numel(targets{3}));
 
+	% call CNN definition function
 	[layers, options, cnnDesc] = defFunc();
 
+	% adjust some options
 	if epochs > 0
 		options.MaxEpochs = epochs;
 	end
@@ -122,11 +129,13 @@ function cnntrain(varargin)
 		analyzeNetwork(layers);
 	end
 
+	% Memory doesn't know what awaits it...
 	clearvars -except -regexp ^[A-Z0-9_]+$ inputs targets layers options valRatio testRatio defFunc saveCnn cnnDesc;
 
+	% train
 	[net, info] = trainNetwork(inputs{1}, targets{1}, layers, options);
 
-	if saveCnn
+	if saveCnn % save if final CNN
 		projectRoot = currentProject().RootFolder;
 		dataDir = fullfile(projectRoot, DATA_FOLDER);
 		outFile = fullfile(dataDir, 'cnn.mat');
@@ -137,6 +146,7 @@ function cnntrain(varargin)
 		fprintf('Output network saved in ''%s''.\n', outFile);
 	end
 
+	% print training results (long code of fprintf)
 	fprintf('\n=======\n');
 	fprintf('# Output network infos:\n');
 	it = info.OutputNetworkIteration;
@@ -216,8 +226,10 @@ function cnntrain(varargin)
 	end
 	fprintf('=======\n');
 
+	% again... clear memory
 	clearvars -except -regexp ^[A-Z0-9_]+$ inputs targets net options valRatio testRatio defFunc cnnDesc;
 
+	% evaluate CNN on training, validation and test sets
 	outputs = {[], [], []};
 	outputs{1} = predict(net, inputs{1}, 'ExecutionEnvironment', options.ExecutionEnvironment, 'MiniBatchSize', options.MiniBatchSize);
 	[R, P, RL, RU] = corrcoef(targets{1}, outputs{1});
@@ -248,6 +260,7 @@ function cnntrain(varargin)
 		return;
 	end
 
+	% plot regression
 	regressionParams = {};
 	regressionParams{end+1} = targets{1};
 	regressionParams{end+1} = outputs{1};

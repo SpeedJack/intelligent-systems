@@ -1,3 +1,6 @@
+% This function is a copy of cnntrain.m with some adaptations. I will not
+% repeat all the comments, script is almost the same: I'll just comment the
+% differences.
 function rnntrain(varargin)
 	global DATA_FOLDER
 	global SHOW_FIGURES
@@ -20,6 +23,9 @@ function rnntrain(varargin)
 	epochs = p.Results.epochs;
 	valRatio = p.Results.valRatio;
 	testRatio = p.Results.testRatio;
+	% this parameter is used to plot an example of a prediction of ECG made
+	% by the network. Line plot where one line is the real ECG and the
+	% other is the predicted ECG.
 	predictEcg = p.Results.predictEcg;
 
 	saveRnn = false;
@@ -38,12 +44,12 @@ function rnntrain(varargin)
 
 	fixdataStage = Stage(@fixdata, 'fixed_dataset_noholes.mat');
 	fixdataStage.addInputStages(preparedataStage);
-	fixdataStage.addParams(milliseconds(2));
+	fixdataStage.addParams(milliseconds(2)); % absolutely, I don't want any hole in data for an RNN
 	fixdataStage.ClearMemoryAfterExecution = true;
 
 	augmentdataStage = Stage(@augmentdata, 'augmented_dataset_recurrent.mat');
 	augmentdataStage.addInputStages(fixdataStage);
-	augmentdataStage.addParams(20000, 'fixedTimeSteps', true, 'timeSteps', 61);
+	augmentdataStage.addParams(20000, 'fixedTimeSteps', true, 'timeSteps', 61); % total of 60.000 samples extracted!
 	augmentdataStage.ClearMemoryAfterExecution = true;
 
 	dataset = runstages(augmentdataStage);
@@ -56,7 +62,7 @@ function rnntrain(varargin)
 		currentSubject = dataset.("s" + string(s));
 		for a = dataset.activities(currentSubject.hasActivity)
 			currentTable = currentSubject.(a{1});
-			currentTable = currentTable(1:(winSize + 1), [1:6,11,12]);
+			currentTable = currentTable(1:(winSize + 1), [1:6,11,12]); % extract pleth_*, temp_3, ecg
 			data{end+1} = table2array(currentTable(1:end - 1, :))';
 			ecgValues(end+1) = currentTable.ecg(end);
 		end
@@ -255,6 +261,8 @@ function rnntrain(varargin)
 		return;
 	end
 
+	% plot an example of ECG prediction done by the network, if requested
+
 	preparedataStage = Stage(@preparedata, 'dataset.mat');
 	preparedataStage.addDatasetParam();
 
@@ -263,27 +271,36 @@ function rnntrain(varargin)
 	fixdataStage.addParams(milliseconds(2));
 	fixdataStage.ClearMemoryAfterExecution = true;
 
+	% extract just 1 sample per activity
 	augmentdataStage = Stage(@augmentdata, 'augmented_dataset_recurrent_reduced.mat');
 	augmentdataStage.addInputStages(fixdataStage);
-	augmentdataStage.addParams(1, 'fixedTimeSteps', true, 'rngSeed', 0xbadbabe5);
+	augmentdataStage.addParams(1, 'fixedTimeSteps', true, 'rngSeed', 0xbadbabe5); % default timesteps=2500 (5 seconds)
 	augmentdataStage.ClearMemoryAfterExecution = true;
 
 	dataset = runstages(augmentdataStage);
 
+	% actually, I will produce 3 plots: 1 per activity
 	sitRecord = table2array(dataset.s1.sit(:, [1:6,11,12]))';
 	walkRecord = table2array(dataset.s1.walk(:, [1:6,11,12]))';
 	runRecord = table2array(dataset.s1.run(:, [1:6,11,12]))';
 
 	recSize = size(sitRecord, 2);
 
+	% run predictions for each record.
 	outputs = {[]; []; []};
 	for i = 1:3
 		inputs = {};
+		% build cell array where each input is of winSize time steps
+		% and each subsequent element is just shifted forward by 1 time
+		% step.
 		for j = (winSize+1):recSize
 			inputs{end+1} = sitRecord(:, j-winSize:j);
 		end
+		% predict
 		outputs{i} = predict(net, inputs, 'ExecutionEnvironment', options.ExecutionEnvironment, 'MiniBatchSize', options.MiniBatchSize);
 	end
+
+	% actually plot
 
 	recSize = recSize - winSize;
 

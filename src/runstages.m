@@ -1,4 +1,10 @@
 function result = runstages(varargin)
+% RUNSTAGES  Run one or more stages, and their input stages recursively if
+%    necessary.
+%
+%    R = RUNSTAGES(S1, S2, ...) runs the stages S1, S2 and all their input
+%    stages recursively. Return results in the R structure where each field has
+%    the name of the stage which produced the output.
 	if nargin == 0
 		result = [];
 		return;
@@ -17,19 +23,24 @@ function result = runstages(varargin)
 end
 
 function nextData = runstage(stage)
+	% Run a stage. If inputs stages need to be executed, this function is
+	% recursively called.
 	global CONTINUE_ON_WARNING
 
+	% Just return if data is in in-memory cache.
 	if stage.OutputAvailable
 		nextData = stage.getOutput(false);
 		return;
 	end
 
+	% Check if, according run policy, the stage needs to run
 	if ~needrun(stage)
 		fprintf('* Loading existing data for stage ''%s'' from file ''%s''...\n', stage.Name, stage.OutputFile);
 		nextData = stage.getOutput(true);
 		return;
 	end
 
+	% Recursive call for input stages
 	if ~stage.allInputsAvailable()
 		for inputStage = stage.InputStages
 			runstage(inputStage);
@@ -37,14 +48,15 @@ function nextData = runstage(stage)
 	end
 
 	fprintf('*** STAGE %s ***\n', stage.Name);
-	lastwarn('');
+	lastwarn(''); % Clear last warning
 
-	tic;
-	nextData = stage.run();
+	tic; % timer
+	nextData = stage.run(); % RUN THE STAGE
 	elapsedTime = seconds(toc);
 	elapsedTime.Format = 'hh:mm:ss.SSS';
 	fprintf('* Stage %s completed in %s.\n', stage.Name, elapsedTime);
 
+	% Check for warnings
 	[warnmsg, warnid] = lastwarn();
 	if ~isempty(warnmsg)
 		fprintf('* Stage execution raised a warning:\n\t%s -> %s\n', warnid, warnmsg);
@@ -55,6 +67,7 @@ function nextData = runstage(stage)
 
 	fprintf('* Results for stage ''%s'' saved in ''%s''.\n', stage.Name, stage.OutputFile);
 
+	% Clear stage in-memory cache if requested
 	if stage.ClearMemoryAfterExecution
 		for inputStage = stage.InputStages
 			inputStage.clearMemory();
@@ -65,6 +78,8 @@ function nextData = runstage(stage)
 end
 
 function result = needrun(stage, varargin)
+	% Check if, according run policy, the stage needs to run. Ask questions
+	% to user if needed.
 	global DEFAULT_RUNPOLICY
 
 	p = inputParser;
@@ -114,11 +129,13 @@ function result = needrun(stage, varargin)
 		error('IS:runstages:invalidRunPolicy', 'Error: Invalid run policy for stage ''%s''.', stage.Name);
 	end
 
+
 	if result
 		return;
 	end
 	switch runPolicy
 	case {RunPolicy.NEVER, RunPolicy.ALWAYSASK, RunPolicy.ASK}
+
 		for inputStage = stage.InputStages
 			if needrun(inputStage, true)
 				error('IS:runstages:invalidRunPolicySequence', 'A Stage above in the pipeline needs to run, but stage ''%s'' must not.', stage.Name);
@@ -128,6 +145,7 @@ function result = needrun(stage, varargin)
 end
 
 function response = askquestion(prompt, defAnswer)
+	% Ask a question to the user.
 	answer = 'X';
 	while answer(1) ~= 'y' && answer(1) ~= 'n'
 		if defAnswer == 'y'

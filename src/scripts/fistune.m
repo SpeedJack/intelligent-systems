@@ -2,6 +2,8 @@ close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
 diaryon('fistune');
 
+%% -- build and run pipeline to create and tune the ANFIS TSK -- %%
+
 [normalizefeaturesStage, extracttargetsStage] = fuzzypipeline;
 
 buildfeaturematrixStage = Stage(@buildfeaturematrix, 'feature_matrix_fuzzy.mat');
@@ -13,6 +15,7 @@ generatefisStage.addParams('grid', 6, 'gbellmf');
 
 result = runstages(generatefisStage, extracttargetsStage, buildfeaturematrixStage);
 
+% renaming
 cv = result.generatefis.cv;
 chkError = result.generatefis.chkError;
 trainError = result.generatefis.trainError;
@@ -22,7 +25,10 @@ chkfis = result.generatefis.chkFIS;
 targets = categorical(result.extracttargets.activity);
 inputs = result.buildfeaturematrix';
 
+% print training, checking performances
 fprintf('\nTrain error: %d\nTest error: %d\n', min(trainError), min(chkError));
+
+%% -- evaluate the performance of the tuned ANFIS TSK -- %%
 
 outputs = evalfis(fis, inputs);
 outputs = categorical(max(min(round(outputs'), 2), 0));
@@ -33,6 +39,8 @@ chkOutputs = evalfis(chkfis, inputs);
 chkOutputs = categorical(max(min(round(chkOutputs'), 2), 0));
 chkTrainOutputs = chkOutputs(cv.training);
 chkTestOutputs = chkOutputs(cv.test);
+
+%% -- plot confusion matrices, for both TrainFIS and ChkFIS -- %%
 
 confFig = figure('Name', 'Confusion Matrix', 'NumberTitle', 'off', 'Visible', 'off');
 plotconfusion(targets(cv.training), trainOutputs, 'TrainFIS on Training set', ...

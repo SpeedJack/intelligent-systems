@@ -2,11 +2,15 @@ close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
 diaryon('plotfeatdistrib');
 
+%% -- run fuzzy pipeline -- %%
+
 [normalizefeaturesStage, extracttargetsStage] = fuzzypipeline;
 
 result = runstages(extracttargetsStage, normalizefeaturesStage);
 features = result.normalizefeatures;
 targets = result.extracttargets.activity;
+
+%% -- plot histograms, classes merged in single figure -- %%
 
 activities = {'Sit', 'Walk', 'Run'};
 barFig = figure('Name', 'Complete histograms', 'NumberTitle', 'off', 'Visible', 'off');
@@ -20,6 +24,8 @@ for varNameIndex = 1:length(varNames)
 		ax = nexttile(tl);
 		featureFunc = featureFuncs{featureFuncIndex};
 		featureMatrix = currentVarData.(featureFunc);
+		% histogram() do not support multiple colors. Need to get
+		% histcounts first and the use a custom bar plot.
 		for activity = 0:2
 			counts(activity + 1, :) = histcounts(featureMatrix(:, targets == activity), -1:0.05:1);
 		end
@@ -37,6 +43,8 @@ if SHOW_FIGURES
 end
 exportfigure(barFig, 'complete-histograms', [10 10 800 1200]);
 close(barFig);
+
+%% -- plot histograms, classes separated in different figures -- %%
 
 varNames = fieldnames(features);
 for varNameIndex = 1:length(varNames)
@@ -62,6 +70,8 @@ for varNameIndex = 1:length(varNames)
 		close(histFig);
 	end
 end
+
+%% -- 3D scatter plot of classes in the feature space -- %%
 
 fullFig = figure('Name', 'Classes on the Feature Space', 'NumberTitle', 'off', 'Visible', 'off');
 ax = axes(fullFig);

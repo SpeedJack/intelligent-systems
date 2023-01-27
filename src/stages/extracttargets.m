@@ -8,8 +8,8 @@ function targets = extracttargets(dataset, varargin)
 	p.parse(dataset, varargin{:});
 
 	dataset = p.Results.dataset;
-	winCount = p.Results.winCount;
-	overlapped = p.Results.overlapped;
+	winCount = p.Results.winCount; % must have same value used in extractfeatures
+	overlapped = p.Results.overlapped; % as above
 
 	ecgMean = []; ecgStd = []; activity = [];
 	for s = 1:dataset.subjectCount
@@ -20,6 +20,9 @@ function targets = extracttargets(dataset, varargin)
 			currentTable = currentSubject.(a{1});
 			ecgVector = currentTable.ecg;
 
+			% needs to do sample computation done by
+			% extractfeatures in order to computed exact number of
+			% rows on which to compute the targets
 			winSize = floor(size(ecgVector, 1) / (winCount + overlapped)) * (1 + overlapped);
 			winStep = winSize - (overlapped * 1/2 * winSize);
 			usedRows = winStep * winCount + (overlapped * winStep);

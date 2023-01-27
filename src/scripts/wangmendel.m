@@ -2,6 +2,8 @@ close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
 diaryon('wangmendel');
 
+%% -- run fuzzy pipeline and get feature matrix and targets -- %%
+
 [normalizefeaturesStage, extracttargetsStage] = fuzzypipeline;
 
 buildfeaturematrixStage = Stage(@buildfeaturematrix, 'feature_matrix_fuzzy.mat');
@@ -11,6 +13,9 @@ result = runstages(extracttargetsStage, buildfeaturematrixStage);
 featureMatrix = result.buildfeaturematrix';
 targets = result.extracttargets.activity' + 1;
 
+%% -- manually set parameters -- %%
+
+% membership function definitions for inputs
 mfs = {'low', 'low-med', 'med-high', 'high';
 	'low', 'low-med', 'med-high', 'high';
 	'low', 'med', 'med-high', 'high'};
@@ -20,10 +25,14 @@ mfdefs(:,:,3) = [0.5 2 -0.9; 0.4 2 0; 0.25 2 0.35; 0.3 2 1]';
 activities = {'sit', 'walk', 'run'};
 featureNames = {'lc1mean', 'pleth1mean', 'pleth2mean'};
 
+%% -- generate matrix with all possible rules -- %%
+
 rulesMat = combvec(1:2, 0:4, 0:4, 0:4, 1:3)';
 rulesMat = rulesMat(any((rulesMat(:, 2:4) ~= 0)'), :);
 rulesMat = [rulesMat, zeros(size(rulesMat, 1), 3)];
 
+% keep infos about membership degree of samples, used then to compute rule
+% importance/weight
 memMat = zeros(size(featureMatrix, 1), 3);
 degMat = zeros(size(featureMatrix, 1), 3);
 
@@ -46,10 +55,12 @@ for i = 1:size(featureMatrix, 1)
 	end
 end
 
+%% -- compute rule importance -- %%
+
 for i = 1:size(rulesMat, 1)
-	goodMask = targets == rulesMat(i, 5);
-	nearMask = abs(targets - rulesMat(i, 5)) == 1;
-	farMask = abs(targets - rulesMat(i, 5)) == 2;
+	goodMask = targets == rulesMat(i, 5); % rule matches the target
+	nearMask = abs(targets - rulesMat(i, 5)) == 1; % rule classify wrong class
+	farMask = abs(targets - rulesMat(i, 5)) == 2; % rule classify wrong sit (run) class, while target is run (sit)
 	ruleMask = [];
 	for j = 1:3
 		mask = (rulesMat(i, j+1) == 0) | (memMat(:, j) == rulesMat(i, j+1));
@@ -67,28 +78,34 @@ for i = 1:size(rulesMat, 1)
 	goodInputs = degMat(goodMask, :);
 	nearInputs = degMat(nearMask, :);
 	farInputs = degMat(farMask, :);
-	farInputs = farInputs * 2;
+	farInputs = farInputs * 2; % double weight. Penalize confusion between sit and run
 	allInputs = [goodInputs; nearInputs; farInputs];
-	rulesMat(i, 6) = sum(prod(goodInputs'));	
+	rulesMat(i, 6) = sum(prod(goodInputs'));
 	rulesMat(i, 7) = sum(prod(allInputs'));
-	rulesMat(i, 8) = rulesMat(i, 6) / rulesMat(i, 7);
+	rulesMat(i, 8) = rulesMat(i, 6) / rulesMat(i, 7); % final ratio
 
 end
 
+%% -- remove rules with low importance -- %%
+
 rulesMat = rulesMat(~isnan(rulesMat(:, 8)), :);
 rulesMat = rulesMat(rulesMat(:, 8) >= 0.5, :);
-rulesMat(:, 8) = rescale(rulesMat(:, 8));
+rulesMat(:, 8) = rescale(rulesMat(:, 8)); % rescale weights in [0,1]
 rulesMat = rulesMat(rulesMat(:, 8) >= 0.01, :);
+
+%% -- remove conflicting rules -- %%
 
 rulesGroups = findgroups(rulesMat(:, 1), rulesMat(:, 2), rulesMat(:, 3), rulesMat(:, 4));
 selectedRules = [];
 for i = unique(rulesGroups)'
 	conflictRules = rulesMat(find(rulesGroups == i), :);
 	conflictRules = sortrows(conflictRules, -8);
-	selectedRules = [selectedRules; conflictRules(1, :)];
+	selectedRules = [selectedRules; conflictRules(1, :)]; % take only first
 end
 
 selectedRules = sortrows(selectedRules, -8);
+
+%% -- print rules -- %%
 
 alreadySeen = [];
 for i = 1:size(selectedRules, 1)
@@ -121,6 +138,10 @@ for i = 1:size(selectedRules, 1)
 		included = ismember(alreadySeen(:, 1:4), selectedRules(i, 1:4), 'rows');
 	end
 	if any(included)
+		% rule included in another. eg.:
+		% 1) IF A then X
+		% 2) IF A and B then X
+		% the first rule includes the second
 		fprintf('  [INCLUDED: %3d]', alreadySeen(included, 5));
 	else
 		alreadySeen = [alreadySeen; selectedRules(i, 1:4), i];

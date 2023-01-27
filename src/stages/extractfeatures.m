@@ -1,4 +1,7 @@
 function features = extractfeatures(prevData, varargin)
+% Extract features. It builds a structure containing fields such as
+% features.pleth_1.mean which contains a matrix NxM where N is the number of
+% windows and M is the number of samples/observations.
 	p = inputParser;
 	validWinCount = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x == round(x));
 	validOverlapped = @(x) islogical(x) && isscalar(x);
@@ -9,12 +12,15 @@ function features = extractfeatures(prevData, varargin)
 	p.addParameter('target', 'mean', validTarget);
 	p.parse(prevData, varargin{:});
 
+	% data may come from different input stages
 	if isfield(p.Results.prevData, 'augmentdata')
 		dataset = p.Results.prevData.augmentdata;
 	else
 		dataset = p.Results.prevData.fixdata;
 	end
-	target = p.Results.target;
+	target = p.Results.target;	% this is used to select the features to
+					% extract, in case we load the list
+					% from stage selectfeatures
 	if isfield(p.Results.prevData, 'selectfeatures')
 		fieldName = 'ecgMean';
 		if strcmp(target, 'stddev')
@@ -31,6 +37,8 @@ function features = extractfeatures(prevData, varargin)
 		winCount = p.Results.winCount;
 		overlapped = p.Results.overlapped;
 
+		% for each feature, extract signal name and name of function to
+		% execute
 		feature = featureCell{1};
 		splitted = split(feature, ':');
 		varName = splitted{1};
@@ -57,16 +65,21 @@ function features = extractfeatures(prevData, varargin)
 				currentTable = currentSubject.(a{1});
 				currentColumn = currentTable.(varName);
 
+				% compute winSize and winStep
 				windowedFeatures = [];
 				winSize = floor(size(currentColumn, 1) / (winCount + overlapped)) * (1 + overlapped);
 				winStep = winSize - (overlapped * 1/2 * winSize);
 				if strcmp(varName, 'temp_3')
+					% temp_3 (ambient temp) is ALWAYS extracted in a single window
 					winSize = winStep * winCount + (overlapped * winStep);
 					winCount = 1;
 					overlapped = false;
 					winStep = winSize;
 				end
 
+				% features are extract by calling iteratively
+				% the function to compute the features on every
+				% window
 				fprintf('(rows=%d, winSize=%d, winStep=%d, winCount=%d, overlapped=%s)... ', size(currentColumn, 1), winSize, winStep, winCount, string(overlapped));
 				for i = 1:winStep:(winStep * winCount)
 					fprintf('%d', i);
@@ -78,6 +91,8 @@ function features = extractfeatures(prevData, varargin)
 						hasNaNs = true;
 					end
 					fprintf('..');
+					% values for different windows are
+					% merged vertically
 					windowedFeatures = [windowedFeatures; windowFeature];
 				end
 				fprintf('done.\n');
@@ -86,14 +101,20 @@ function features = extractfeatures(prevData, varargin)
 					warning('IS:STAGE:extractfeatures:nansInFeatures', "NaNs in feature ''%s'' for subject %d, activity %s.", feature, s, a{1});
 				end
 
+				% values for different samples are merged
+				% horizontally
 				currentFeatures = [currentFeatures windowedFeatures];
 			end
 		end
 
+		% build structure
 		features.(varName).(featFieldName) = [features.(varName).(featFieldName) currentFeatures];
 	end
 
 end
+
+
+%% -- Other functions used to extract features -- %%
 
 function y = meandiff(x)
 	y = mean(diff(x));

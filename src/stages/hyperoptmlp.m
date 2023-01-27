@@ -1,4 +1,6 @@
 function results = hyperoptmlp(prevData, varargin)
+% hyperopt parameters for training MLPs using bayesopt. For activity MLP see
+% hyperoptmlp_act.m.
 	p = inputParser;
 	validPositiveInt = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x == round(x));
 	validTarget = @(x) ischar(x) && any(strcmp(x, {'mean', 'stddev'}));
@@ -14,12 +16,12 @@ function results = hyperoptmlp(prevData, varargin)
 	p.parse(prevData, varargin{:});
 
 	prevData = p.Results.prevData;
-	trainFunction = p.Results.trainFunction;
-	target = p.Results.target;
-	trainParams = p.Results.trainParams;
-	optimizableVars = p.Results.optimizableVars;
-	maxEvaluations = p.Results.maxEvaluations;
-	seedPoints = p.Results.seedPoints;
+	trainFunction = p.Results.trainFunction; % trainFunction is fixed
+	target = p.Results.target; % to select the target from extracttargets
+	trainParams = p.Results.trainParams; % fixed train params
+	optimizableVars = p.Results.optimizableVars; % optimizable train params
+	maxEvaluations = p.Results.maxEvaluations; % max epochs
+	seedPoints = p.Results.seedPoints; % # of initial epochs used as seed points
 	if isfield(prevData, 'mergefeaturematrix')
 		featureMatrix = prevData.mergefeaturematrix;
 	else
@@ -31,18 +33,25 @@ function results = hyperoptmlp(prevData, varargin)
 		targets = prevData.extracttargets.ecgStd;
 	end
 
+	% divide with stratification (unneeeded here, but does not harm),
+	% 5-fold cv
 	stratifyGroups = findgroups(prevData.extracttargets.activity);
 	cv = cvpartition(stratifyGroups, 'KFold', 5, 'Stratify', true);
 
+	% function to minimize
 	minimizeFcn = @(vars) KFoldCVLoss(featureMatrix, targets, cv, trainFunction, trainParams, vars);
 
 	fprintf('Starting hyperparameters optimization...\n');
 
+	% bayesopt call
 	bayesoptResults = bayesopt(minimizeFcn, optimizableVars, 'IsObjectiveDeterministic', false, ...
 		'AcquisitionFunctionName', 'expected-improvement-plus', 'UseParallel', true, ...
 		'MaxObjectiveEvaluations', maxEvaluations, 'NumSeedPoints', seedPoints, ...
 		'XConstraintFcn', @xconstraint);
 
+	% NN architectural params are removed from the best point computed by
+	% bayesopt and placed in different fields of returning structure, just
+	% for convenience.
 	results.bayesoptResults = bayesoptResults;
 	bp = bestPoint(bayesoptResults, 'Criterion', 'min-observed');
 	results.hiddenSizes = [bp.hiddenUnits1, bp.hiddenUnits2, bp.hiddenUnits3];
@@ -51,6 +60,9 @@ function results = hyperoptmlp(prevData, varargin)
 end
 
 function tf = xconstraint(X)
+% Constraint function for bayesopt. Asking for 3 hidden layers with
+% sizes 0, 0, 25 clearly has no sense - we need to avoid bayesopt to
+% select these points.
 	tf1 = X.hiddenLayers == 1 & X.hiddenUnits2 == 0 & X.hiddenUnits3 == 0;
 	tf2 = X.hiddenLayers == 2 & X.hiddenUnits2 > 0 & X.hiddenUnits3 == 0;
 	tf3 = X.hiddenLayers == 3 & X.hiddenUnits2 > 0 & X.hiddenUnits3 > 0;
@@ -59,6 +71,7 @@ function tf = xconstraint(X)
 end
 
 function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
+% actual function to minimize.
 	if vars.hiddenLayers == 2
 		hiddenSizes = [vars.hiddenUnits1, vars.hiddenUnits2];
 	elseif vars.hiddenLayers == 3
@@ -70,6 +83,7 @@ function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
 
 	mse = [];
 	testObservations = 0;
+	% k-fold cross-validation
 	for i = 1:cv.NumTestSets
 		trainIdx = cv.training(i);
 		testIdx = cv.test(i);
@@ -82,7 +96,7 @@ function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
 		net = fitnet(hiddenSizes, trainFunction);
 		net.divideFcn = 'dividerand';
 		net.divideMode = 'sample';
-		net.input.processFcns = {'removeconstantrows'};
+		net.input.processFcns = {'removeconstantrows'}; % already normalized
 		net.output.processFcns = {'removeconstantrows', 'mapminmax'};
 		net.performFcn = 'mse';
 		net.trainParam.showWindow = false;
@@ -91,9 +105,11 @@ function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
 		net.trainParam.epochs = 1000;
 		net.trainParam.time = Inf;
 		for f = fieldnames(trainParams)'
+			% fixed variables
 			net.trainParam.(f{1}) = trainParams.(f{1});
 		end
 		for f = vars.Properties.VariableNames
+			% optimizable variales
 			net.trainParam.(f{1}) = vars.(f{1});
 		end
 		if isinf(net.trainParam.max_fail) || net.trainParam.max_fail == 0 % trainbr
@@ -111,13 +127,18 @@ function cvmse = KFoldCVLoss(X, Y, cv, trainFunction, trainParams, vars)
 			useGPU = 'yes';
 		end
 
+		% train
 		net = train(net, Xtrain, Ytrain, 'useParallel', 'no', 'useGPU', useGPU);
 
+		% test
 		Ypred = net(Xtest);
 
+		% compute MSE for this test
 		mse(i) = immse(Ytest, Ypred);
 		testObservations = testObservations + numel(Ytest);
 	end
 
+	% this is the same done by sequentialfs as reported by matlab's doc.
+	% sum of MSE of all tests is divided by total test observations.
 	cvmse = sum(mse) / testObservations;
 end

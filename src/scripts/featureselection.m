@@ -2,6 +2,8 @@ close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
 diaryon('featureselection');
 
+%% -- build and run pipeline for correlation analysis -- %%
+
 preparedataStage = Stage(@preparedata, 'dataset.mat');
 preparedataStage.addDatasetParam();
 
@@ -13,6 +15,7 @@ augmentdataStage = Stage(@augmentdata, 'augmented_dataset.mat');
 augmentdataStage.addInputStages(fixdataStage);
 augmentdataStage.ClearMemoryAfterExecution = true;
 
+% extract all features defined
 getfeaturesStage = Stage(@getfeatures, 'full_feature_list.mat');
 
 extractfeaturesStage = Stage(@extractfeatures, 'full_features.mat');
@@ -21,10 +24,14 @@ extractfeaturesStage.addInputStages(augmentdataStage, getfeaturesStage);
 extracttargetsStage = Stage(@extracttargets, 'targets.mat');
 extracttargetsStage.addInputStages(augmentdataStage);
 
+% find correlated features
 findcorrelatedfeaturesStage = Stage(@findcorrelatedfeatures, 'correlated_features.mat');
 findcorrelatedfeaturesStage.addInputStages(extractfeaturesStage);
 
+% run these stages
 result = runstages(findcorrelatedfeaturesStage);
+
+%% -- show correlation heatmap -- %%
 
 corrFig = result.correlationHeatmap;
 corrFig.Name = corrFig.Name + " (no windows)";
@@ -38,6 +45,9 @@ if SHOW_FIGURES
 end
 close(corrFig);
 
+%% -- pipeline continuation -- %%
+
+% drop correlated features
 dropcorrelatedfeaturesStage = Stage(@dropcorrelatedfeatures, 'uncorrelated_features.mat');
 dropcorrelatedfeaturesStage.addInputStages(extractfeaturesStage, findcorrelatedfeaturesStage);
 
@@ -61,22 +71,26 @@ normalizefeaturesStage = Stage(@normalizefeatures, 'normalized_features.mat');
 normalizefeaturesStage.addInputStages(dropcorrelatedfeaturesStage);
 normalizefeaturesStage.ClearMemoryAfterExecution = true;
 
+% run sequentialfs
 sfsStage = Stage(@selectfeatures, 'selected_features.mat');
 sfsStage.addInputStages(normalizefeaturesStage, extracttargetsStage);
 
 result = runstages(sfsStage);
 diary off;
 
+%% -- ECG stddev, windowed -- %%
+
+% same as above, but for ECG stddev
 
 diaryon('featureselection_windowed');
 
 extractfeaturesStage_win = Stage(@extractfeatures, 'full_features_windowed.mat');
 extractfeaturesStage_win.addInputStages(augmentdataStage, getfeaturesStage);
-extractfeaturesStage_win.addParams(5, true);
+extractfeaturesStage_win.addParams(5, true); % windowed
 
 extracttargetsStage_win = Stage(@extracttargets, 'targets_windowed.mat');
 extracttargetsStage_win.addInputStages(augmentdataStage);
-extracttargetsStage_win.addParams(5, true);
+extracttargetsStage_win.addParams(5, true); % windowed
 
 findcorrelatedfeaturesStage_win = Stage(@findcorrelatedfeatures, 'correlated_features_windowed.mat');
 findcorrelatedfeaturesStage_win.addInputStages(extractfeaturesStage_win);
@@ -103,7 +117,7 @@ normalizefeaturesStage_win.ClearMemoryAfterExecution = true;
 
 sfsStage_win = Stage(@selectfeatures, 'selected_features_windowed.mat');
 sfsStage_win.addInputStages(normalizefeaturesStage_win, extracttargetsStage_win);
-sfsStage_win.addParams('nfeatures', 7);
+sfsStage_win.addParams('nfeatures', 7); % 7 features, instead of 10
 
 result = runstages(sfsStage_win);
 diary off;

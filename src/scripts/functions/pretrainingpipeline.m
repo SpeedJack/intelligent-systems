@@ -1,4 +1,5 @@
 function [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline(target, windowed)
+	% build the pipeline needed to train MLPs
 	preparedataStage = Stage(@preparedata, 'dataset.mat');
 	preparedataStage.addDatasetParam();
 
@@ -21,10 +22,12 @@ function [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline(ta
 		extracttargetsStage.addParams(5, true);
 	end
 
+	% Will use features selected using sequentialfs
 	sfsStage = Stage(@selectfeatures, ['selected_features' matSuffix '.mat'], RunPolicy.NEVER);
 
 	matSuffix = ['_' target matSuffix];
 
+	% extract only selected features
 	extractfeaturesStage = Stage(@extractfeatures, ['features' matSuffix '.mat']);
 	extractfeaturesStage.addInputStages(augmentdataStage, sfsStage);
 	if windowed

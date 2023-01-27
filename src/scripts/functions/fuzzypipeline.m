@@ -1,4 +1,5 @@
 function [normalizefeaturesStage, extracttargetsStage] = fuzzypipeline
+	% build the pipeline needed to train/tune/test fuzzy systems
 	preparedataStage = Stage(@preparedata, 'dataset.mat');
 	preparedataStage.addDatasetParam();
 
@@ -13,6 +14,7 @@ function [normalizefeaturesStage, extracttargetsStage] = fuzzypipeline
 	extracttargetsStage = Stage(@extracttargets, 'targets.mat');
 	extracttargetsStage.addInputStages(augmentdataStage);
 
+	% Will use features selected for fuzzy systems
 	sfsStage = Stage(@selectfeatures_fuzzy, 'selected_features_fuzzy.mat', RunPolicy.NEVER);
 
 	extractfeaturesStage = Stage(@extractfeatures, 'features_fuzzy.mat');

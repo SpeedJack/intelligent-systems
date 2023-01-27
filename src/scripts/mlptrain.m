@@ -1,5 +1,7 @@
 close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
+%% -- mean estimation network -- %%
+
 diaryon('mlptraining_mean');
 
 [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline('mean', false);
@@ -18,7 +20,12 @@ diary off;
 fprintf('Press a key to continue...');
 pause;
 
+%% -- stddev estimation network -- %%
+
 diaryon('mlptraining_stddev');
+
+% actually, the parameters set here manually have proven to work better than
+% those selected via bayesopt
 
 [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline('stddev', true);
 % hyperoptStage = Stage(@hyperoptmlp, 'bayesopt_mlp_stddev.mat', RunPolicy.NEVER);

@@ -1,17 +1,22 @@
 function dataset = preparedata(inputFile)
+% load dataset in a structure. Example field: dataset.s15.walk will contain a
+% timetable with timeseries+targets for s15 during walk.
 	projectRoot = currentProject().RootFolder;
 
+	% search for dataset.zip
 	[~, inputFileName, inputFileExt] = fileparts(inputFile);
 	if ~exist(inputFile, 'file')
 		error('IS:STAGE:preparedata:archiveNotFound', 'Error: %s not found. Please place it in %s.', strcat(inputFileName, inputFileExt), projectRoot);
 	end
 
+	% extract archive
 	tempDir = tempname;
 	mkdir(tempDir);
 
 	fprintf('Extracting %s...\n', strcat(inputFileName, inputFileExt));
 	unzip(inputFile, tempDir);
 
+	% search timeseries and targets CSV files
 	activities = {'sit', 'walk', 'run'};
 	datasetFilePatterns = fullfile(tempDir, '**', strcat('s*_', activities, '_timeseries.csv'));
 	datasetFiles = [dir(datasetFilePatterns{1}); dir(datasetFilePatterns{2}); dir(datasetFilePatterns{3})];
@@ -37,6 +42,7 @@ function dataset = preparedata(inputFile)
 		end
 		maxsubject = max(subject, maxsubject);
 
+		% targets file
 		targetsFilename = fullfile(datasetFiles(i).folder, sprintf('s%d_%s_targets.csv', subject, activity));
 		if exist(targetsFilename, 'file') == 0
 			rmdir(tempDir, 's');
@@ -44,15 +50,18 @@ function dataset = preparedata(inputFile)
 			continue;
 		end
 
+		% build timetable
 		timeseries = table2timetable(sortrows(readtable(filename), 'time'));
 		targets = table2timetable(sortrows(readtable(targetsFilename), 'time'));
 
+		% check for timeseries and targets mismatch
 		if ~isequal(timeseries.time, targets.time)
 			rmdir(tempDir, 's');
 			warning('IS:STAGE:preparedata:timestampInconsistency', 'Timeseries and targets files do not have the same timestamps. Skipping...');
 			continue;
 		end
 
+		% save in structure
 		merged.("s"+ string(subject)).(activity) = [timeseries targets];
 	end
 
@@ -70,12 +79,16 @@ function dataset = preparedata(inputFile)
 				fprintf('Renamed subject: %d --> %d.\n', i, index);
 			end
 
+			% hasActivity will contain a logical vector indicating
+			% if current subject has records for that activity
 			dataset.("s" + string(index)).hasActivity = isfield(dataset.("s" + string(index)), activities);
+
 			if ~all(dataset.("s" + string(index)).hasActivity)
 				warning('IS:STAGE:preparedata:missingActivity', 'Subject %d does not have all activities.', index);
 			end
 		end
 	end
+
 	dataset.subjectCount = index;
 	dataset.activities = activities;
 end

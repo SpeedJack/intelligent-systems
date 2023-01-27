@@ -1,5 +1,8 @@
 close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
+% Like in mlptrain.m, but here we need 2 pretraining pipelines, like it was
+% needed in mlphyperopt_act.m and mlpbayesopt_act.m.
+
 diaryon('mlptraining_activity');
 
 [buildfeaturematrixStage_mean, extracttargetsStage] = pretrainingpipeline('mean', false);

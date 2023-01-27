@@ -1,4 +1,5 @@
 function selectedFeatures = selectfeatures(prevData, varargin)
+% feature selection for MLPs.
 	p = inputParser;
 	validPositiveInt = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x == round(x));
 	p.addRequired('prevData', @isstruct);
@@ -7,7 +8,7 @@ function selectedFeatures = selectfeatures(prevData, varargin)
 	p.parse(prevData, varargin{:});
 
 	prevData = p.Results.prevData;
-	cv = p.Results.cv;
+	cv = p.Results.cv; % K, for K-fold cross-validation
 	nfeatures = p.Results.nfeatures;
 
 	targets = prevData.extracttargets;
@@ -21,6 +22,15 @@ function selectedFeatures = selectfeatures(prevData, varargin)
 		features = prevData.extractfeatures;
 	end
 
+	% sequentialfs selects row from the matrix we pass to him. In case of
+	% multiple windows, if sequentialfs selects, say, feature number 5, we
+	% must take the row number 5 from all windows. In other words,
+	% sequentialfs is not designed for features extracted in windows.
+
+	% prepare a cell array where each element is a feature matrix
+	% containing features from a single window. eg. windows{2} will contain
+	% the feature matrix for all the features extracted in the second
+	% window.
 	fprintf('Preparing data for sequentialfs...');
 	windows = {};
 	featureNames = {};
@@ -43,6 +53,7 @@ function selectedFeatures = selectfeatures(prevData, varargin)
 	end
 	fprintf('done!\n');
 
+	% calls to sequentialfs, for both mean and stddev.
 	fprintf('Running sequentialfs for ecg mean...\n');
 	sfsResult = runsequentialfs(windows, targets.ecgMean', numel(featureNames), cv, nfeatures);
 	selectedFeatures.ecgMean = sfsResult;
@@ -61,8 +72,12 @@ function selectedFeatures = selectfeatures(prevData, varargin)
 end
 
 function sfsResult = runsequentialfs(windows, target, featureCount, cv, nfeatures)
+	% this is the matrix on which sequentialfs will actually select rows.
 	dummyMatrix = repmat(1:featureCount, length(target), 1);
 
+	% actual features are passed in additional parameters. These additional
+	% parameters are not interpreted by sequentialfs in any way and passed
+	% to the criterion function.
 	opts = statset('Display', 'iter', 'UseParallel', true);
 	[inmodel, history] = sequentialfs(@sfscriterion, dummyMatrix, target, ...
 			windows{:}, 'cv', cv, 'options', opts, ...
@@ -72,6 +87,9 @@ function sfsResult = runsequentialfs(windows, target, featureCount, cv, nfeature
 end
 
 function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
+% Criterion function for sequentialfs.
+	% We need to take the correct features, indicated by sequentialfs, from
+	% all the windows.
 	winCount = (length(varargin) / 2) - 1;
 	inputTrain = [];
 	trainIndexes = trainMatrix(1, :);
@@ -83,6 +101,7 @@ function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
 	end
 	targetsTrain = targetsTrain';
 
+	% same for test set
 	inputTest = [];
 	testIndexes = trainIndexes;
 	for win = (winCount + 3):length(varargin)
@@ -93,10 +112,11 @@ function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
 	end
 	targetsTest = varargin{winCount + 2}';
 
+	% scale hidden units, according to input size
 	hiddenNeurons = max(5, floor(size(inputTrain, 1)/2));
 
 	net = fitnet(hiddenNeurons);
-	net.input.processFcns = {'removeconstantrows'};
+	net.input.processFcns = {'removeconstantrows'}; % already normalized
 	net.output.processFcns = {'removeconstantrows', 'mapminmax'};
 	net.divideParam.trainRatio = 1;
 	net.divideParam.valRatio = 0;
@@ -110,6 +130,8 @@ function performance = sfscriterion(trainMatrix, targetsTrain, varargin)
 	if license('test', 'Distrib_Computing_Toolbox') && gpuDeviceCount > 0
 		useGPU = 'yes';
 	end
+
+	% train and test
 
 	net = train(net, inputTrain, targetsTrain, 'useGPU', useGPU);
 

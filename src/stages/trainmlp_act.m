@@ -1,4 +1,5 @@
 function trained = trainmlp_act(prevData, varargin)
+% Used to train activity MLP. Adapted from trainmlp.m.
 	p = inputParser;
 	validPositiveIntVector = @(x) isnumeric(x) && isvector(x) && (x(1) > 0) && all(x >= 0) && all(x == round(x));
 	validBool = @(x) islogical(x) && isscalar(x);
@@ -26,14 +27,15 @@ function trained = trainmlp_act(prevData, varargin)
 	end
 	hiddenSizes = hiddenSizes(hiddenSizes > 0);
 
+	% one-hot-encoded targets vector
 	targets = logical(full(ind2vec(activity + 1)));
 
-	net = patternnet(hiddenSizes, trainingFunction);
+	net = patternnet(hiddenSizes, trainingFunction); % classification
 	net.divideFcn = 'divideind';
 	net.divideMode = 'sample';
-	net.input.processFcns = {'removeconstantrows'};
+	net.input.processFcns = {'removeconstantrows'}; % already normalized
 	net.output.processFcns = {'removeconstantrows', 'mapminmax'};
-	net.performFcn = 'crossentropy';
+	net.performFcn = 'crossentropy'; % classification
 	net.trainParam.showWindow = false;
 	net.trainParam.showCommandLine = true;
 	net.trainParam.show = 25;
@@ -45,6 +47,8 @@ function trained = trainmlp_act(prevData, varargin)
 	for f = fieldnames(trainParams)'
 		net.trainParam.(f{1}) = trainParams.(f{1});
 	end
+
+	% divide with stratification
 	[trainInd, valInd, testInd] = stratifieddividerand(findgroups(activity), 0.7, 0.15 ,0.15);
 	net.divideParam.trainInd = trainInd;
 	net.divideParam.valInd = valInd;
@@ -56,6 +60,7 @@ function trained = trainmlp_act(prevData, varargin)
 		useGPU = 'yes';
 	end
 
+	% train
 	[net, tr] = train(net, featureMatrix, targets, 'useParallel', 'yes', 'useGPU', useGPU);
 	trained.network = net;
 	trained.trainingRecord = tr;
