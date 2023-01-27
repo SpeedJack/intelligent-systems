@@ -1,1 +1,29 @@
 \chapter{Determining a person's activity}\label{ch:activity}
+
+In this chapter I will discuss the design and implementation of a multi-layer
+perceptron used to determine a person's activity based on the union of features
+used in the two MLPs developed in \chref{ch:ecg}. This implements the
+requirements for the Task 3.2 of the Project Specifications.
+
+The network has been created using the MATLAB's \code{patternnet} (instead of
+\code{fitnet} used in the previous chapter). \tableref{table:activitymappings}
+shows the mappings used for the three activity classes.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\toprule
+		\standout{Activity} & \standout{Label} (from
+		\code{extracttargets}) & \standout{Target mapping} \\
+		\midrule
+		Sit & 1 & 100 \\
+		Walk & 2 & 010 \\
+		Run & 3 & 001 \\
+		\bottomrule
+	\end{tabular}
+	\caption{Target mappings used for the three activity
+	classes.}\label{table:activitymappings}
+\end{table}
+
+\input{activity/hyperopt}
+\input{activity/training}

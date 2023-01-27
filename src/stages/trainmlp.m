@@ -15,7 +15,11 @@ function trained = trainmlp(prevData, varargin)
 	trainingFunction = p.Results.trainFunction;
 	target = p.Results.target;
 	trainParams = p.Results.trainParams;
-	featureMatrix = prevData.buildfeaturematrix;
+	if isfield(prevData, 'mergefeaturematrix')
+		featureMatrix = prevData.mergefeaturematrix;
+	else
+		featureMatrix = prevData.buildfeaturematrix;
+	end
 	if strcmp(target, 'mean')
 		targets = prevData.extracttargets.ecgMean;
 	else

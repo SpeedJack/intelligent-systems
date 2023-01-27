@@ -22,7 +22,7 @@ AC_LATEX_PACKAGES_REQUIRE([babel, inputenc, lmodern, csquotes, microtype,
 	geometry, etoolbox, suffix, multicol, minibox, pdflscape, xcolor,
 	graphicx, float, titlesec, caption, subcaption, tcolorbox, interval,
 	array, makecell, enumitem, listings, nameref, varioref, hyperref,
-	biblatex, gitinfo2])
+	biblatex, gitinfo2, siunitx])
 
 # Checks for libraries.
 

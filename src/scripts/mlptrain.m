@@ -21,13 +21,15 @@ pause;
 diaryon('mlptraining_stddev');
 
 [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline('stddev', true);
-hyperoptStage = Stage(@hyperoptmlp, 'bayesopt_mlp_stddev.mat', RunPolicy.NEVER);
+% hyperoptStage = Stage(@hyperoptmlp, 'bayesopt_mlp_stddev.mat', RunPolicy.NEVER);
 
 trainParams.showWindow = true;
 
-trainStage = Stage(@trainmlp, 'final_trained_mlp_stddev.mat');
-trainStage.addInputStages(buildfeaturematrixStage, extracttargetsStage, hyperoptStage);
-trainStage.addParams('target', 'stddev', 'trainFunction', 'trainlm', 'trainParams', trainParams);
+trainStage = Stage(@trainmlp, 'final_trained_mlp_stddev.mat', RunPolicy.ALWAYS);
+trainStage.addInputStages(buildfeaturematrixStage, extracttargetsStage);
+trainStage.addParams('hiddenSizes', [74 29], 'target', 'stddev', 'trainFunction', 'trainlm', 'trainParams', trainParams);
+% trainStage.addInputStages(buildfeaturematrixStage, extracttargetsStage, hyperoptStage);
+% trainStage.addParams('target', 'stddev', 'trainFunction', 'trainlm', 'trainParams', trainParams);
 
 stddevNet = runstages(trainStage);
 

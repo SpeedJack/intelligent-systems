@@ -20,7 +20,11 @@ function results = hyperoptmlp(prevData, varargin)
 	optimizableVars = p.Results.optimizableVars;
 	maxEvaluations = p.Results.maxEvaluations;
 	seedPoints = p.Results.seedPoints;
-	featureMatrix = prevData.buildfeaturematrix;
+	if isfield(prevData, 'mergefeaturematrix')
+		featureMatrix = prevData.mergefeaturematrix;
+	else
+		featureMatrix = prevData.buildfeaturematrix;
+	end
 	if strcmp(target, 'mean')
 		targets = prevData.extracttargets.ecgMean;
 	else

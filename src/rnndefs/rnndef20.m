@@ -1,0 +1,16 @@
+function [layers, options, winSize, rnnDesc] = rnndef20
+	layers = [
+		sequenceInputLayer(8, 'Normalization', 'zscore')
+		lstmLayer(100, 'OutputMode', 'last')
+		fullyConnectedLayer(1)
+		regressionLayer
+	];
+	options = trainingOptions('adam', ...
+		'MiniBatchSize', 300, ...
+		'InitialLearnRate', 0.1, ...
+		'Shuffle', 'every-epoch', ...
+		'SequencePaddingDirection', 'left' ...
+	);
+	winSize = 10;
+	rnnDesc = "100 neurons";
+end

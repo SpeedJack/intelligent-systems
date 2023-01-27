@@ -1,0 +1,34 @@
+\section{Selection of the size of the window}\label{sec:rnnwinsize}
+
+The starting LSTM RNN architecture is shown in \lstref{lst:startingrnn}.
+
+\lstinputlisting[language={matlab}, label={lst:startingrnn},
+style={Matlab-editor}, basicstyle={\footnotesize\ttfamily}, caption={Starting
+architecture for the LSTM.}]{startingrnn.m}
+
+RNN definitions from 1 to 10 are used to find the optimal window size, using
+\(50\) as the number of neurons and training for \(50\) epochs. Results are
+shown in \tableref{table:rnnwinsize}. A window size of \(10\) is a valid
+choice, based on the RMSE on the best loss iteration.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\toprule
+		\# & Window size & RMSE & Best RMSE \\
+		\midrule
+		1 & 10 & \(6128.04\) & \(3087.69\) \\
+		2 & 20 & \(8666.25\) & \(8949.86\) \\
+		3 & 30 & \(4839.1\) & \(5496.51\) \\
+		4 & 40 & \(7023.05\) & \(5328.75\) \\
+		5 & 50 & \(7434.16\) & \(6413.42\) \\
+		6 & 60 & \(9297.86\) & \(8541.49\) \\
+		7 & 12 & \(5614.25\) & \(5315.68\) \\
+		8 & 15 & \(7863.83\) & \(6274.77\) \\
+		9 & 9 & \(7406.52\) & \(4481.75\) \\
+		10 & 8 & \(8528.44\) & \(6514.86\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Trying different window sizes for the
+	RNN.}\label{table:rnnwinsize}
+\end{table}

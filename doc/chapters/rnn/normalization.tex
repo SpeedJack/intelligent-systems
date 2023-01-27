@@ -1,0 +1,22 @@
+\section{Selection of the normalization algorithm}\label{sec:rnnnormalization}
+
+I've tried all possible choices for the normalization algorithm for the input
+sequences. Results in \tableref{table:rnnnormalization}.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\toprule
+		\# & Normalization algorithm & RMSE & Best RMSE \\
+		\midrule
+		1 & \code{rescale-symmetric} & \(6128.04\) & \(3087.69\) \\
+		11 & \code{zerocenter} & \(13938.16\) & \(11285.47\) \\
+		12 & \code{zscore} & \(3157.22\) & \(2930.36\) \\
+		13 & \code{rescale-zero-one} & \(10997.16\) & \(10982.06\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Changing the normalization algorithm for the
+	RNN.}\label{table:rnnnormalization}
+\end{table}
+
+Best results were obtained using \code{zscore}.

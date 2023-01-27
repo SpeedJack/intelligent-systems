@@ -1,0 +1,4 @@
+Results for ACTIVITY:
+	Best training function: trainscg
+	Best n. of hidden units: 150
+	Test performance: 0.019054

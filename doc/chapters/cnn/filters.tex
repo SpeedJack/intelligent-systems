@@ -1,0 +1,29 @@
+\section{Selection of the number of filters}\label{sec:cnnfilters}
+
+Here I will try to increase the number of filters by tuning the \code{nf}
+parameter. This parameter is multiplied with the ``depth'' of the convolutional
+layer to obtain the number of filters in the layer. Some of the test will use 4
+convolutional layers; others will use 5 convolutional layers.
+
+Results in \tableref{table:cnnfilters}. The most complex architecture tested,
+with 5 convolutional layers and \code{nf = 64}, is the best one.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\toprule
+		\# & Layers & nf & R \\
+		\midrule
+		25 & 4 & 16 & \(0.940\) \\
+		26 & 5 & 16 & \(0.939\) \\
+		27 & 4 & 32 & \(0.944\) \\
+		28 & 4 & 48 & \(0.947\) \\
+		29 & 4 & 64 & \(0.945\) \\
+		30 & 5 & 32 & \(0.946\) \\
+		31 & 5 & 48 & \(0.946\) \\
+		32 & 5 & 64 & \(0.949\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Increasing the number of filters. Only the \(R\) parameter is
+	reported.}\label{table:cnnfilters}
+\end{table}

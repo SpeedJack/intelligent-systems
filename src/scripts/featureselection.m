@@ -36,7 +36,7 @@ if SHOW_FIGURES
 	fprintf('Press a key to continue...');
 	pause;
 end
-close all;
+close(corrFig);
 
 dropcorrelatedfeaturesStage = Stage(@dropcorrelatedfeatures, 'uncorrelated_features.mat');
 dropcorrelatedfeaturesStage.addInputStages(extractfeaturesStage, findcorrelatedfeaturesStage);
@@ -55,7 +55,7 @@ dropcorrelatedfeaturesStage.addInputStages(extractfeaturesStage, findcorrelatedf
 % 	fprintf('Press a key to continue...');
 % 	pause;
 % end
-% close all;
+% close(afterFig);
 
 normalizefeaturesStage = Stage(@normalizefeatures, 'normalized_features.mat');
 normalizefeaturesStage.addInputStages(dropcorrelatedfeaturesStage);
@@ -92,7 +92,7 @@ if SHOW_FIGURES
 	fprintf('Press a key to continue...');
 	pause;
 end
-close all;
+close(corrFig);
 
 dropcorrelatedfeaturesStage_win = Stage(@dropcorrelatedfeatures, 'uncorrelated_features_windowed.mat');
 dropcorrelatedfeaturesStage_win.addInputStages(extractfeaturesStage_win, findcorrelatedfeaturesStage_win);

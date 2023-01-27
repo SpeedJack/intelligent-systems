@@ -1,12 +1,15 @@
 function fixedDataset = fixdata(dataset, varargin)
 	p = inputParser;
 	validMaxDelta = @(x) isscalar(x) && isduration(x) && (x > 0);
+	validPositiveInt = @(x) isscalar(x) && isnumeric(x) && (x >= 0) && (x == round(x));
 	p.addRequired('dataset', @isstruct);
 	p.addOptional('maxDelta', milliseconds(200), validMaxDelta);
+	p.addParameter('minTimeSteps', 2500, validPositiveInt);
 	p.parse(dataset, varargin{:});
 
 	dataset = p.Results.dataset;
 	maxDelta = p.Results.maxDelta;
+	minTimeSteps = p.Results.minTimeSteps;
 
 	for s = 1:dataset.subjectCount
 		currentSubject = dataset.("s" + string(s));
@@ -27,6 +30,11 @@ function fixedDataset = fixdata(dataset, varargin)
 					for endIndex = indexes'
 						fprintf('%d-%d', startIndex, endIndex);
 						subtable = currentTable(startIndex:endIndex, :);
+						if (endIndex - startIndex) < minTimeSteps
+							fprintf('(too short, discarding)...');
+							startIndex = endIndex + 1;
+							continue;
+						end
 						if startIndex == 1
 							dataset.("s" + string(s)).(a{1}) = subtable;
 						else

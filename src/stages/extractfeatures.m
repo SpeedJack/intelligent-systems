@@ -5,7 +5,7 @@ function features = extractfeatures(prevData, varargin)
 	validTarget = @(x) ischar(x) && any(strcmp(x, {'mean', 'stddev'}));
 	p.addRequired('prevData', @isstruct);
 	p.addOptional('winCount', 1, validWinCount);
-	p.addOptional('overlapped', false, validOverlapped);
+	p.addOptional('overlapped', true, validOverlapped);
 	p.addParameter('target', 'mean', validTarget);
 	p.parse(prevData, varargin{:});
 
@@ -21,18 +21,31 @@ function features = extractfeatures(prevData, varargin)
 			fieldName = 'ecgStd';
 		end
 		featureList = p.Results.prevData.selectfeatures.(fieldName).featureNames';
+	elseif isfield(p.Results.prevData, 'selectfeatures_fuzzy')
+		featureList = p.Results.prevData.selectfeatures_fuzzy.fuzzy.featureNames';
 	else
 		featureList = p.Results.prevData.getfeatures;
 	end
-	winCount = p.Results.winCount;
-	overlapped = p.Results.overlapped;
 
 	for featureCell = featureList
+		winCount = p.Results.winCount;
+		overlapped = p.Results.overlapped;
+
 		feature = featureCell{1};
 		splitted = split(feature, ':');
 		varName = splitted{1};
-		featureFunc = splitted{2};
-		features.(varName).(featureFunc) = [];
+		featFieldName = splitted{2};
+		features.(varName).(featFieldName) = [];
+
+		featureFunc = featFieldName;
+		if contains(featFieldName, '_')
+			splitted = split(featFieldName, '_');
+			featureFunc = splitted{1};
+		end
+
+		if winCount == 1
+			overlapped = false;
+		end
 
 		currentFeatures = [];
 		for s = 1:dataset.subjectCount
@@ -69,11 +82,6 @@ function features = extractfeatures(prevData, varargin)
 				end
 				fprintf('done.\n');
 
-				if strcmp(varName, 'temp_3')
-					winCount = p.Results.winCount;
-					overlapped = p.Results.overlapped;
-				end
-
 				if hasNaNs
 					warning('IS:STAGE:extractfeatures:nansInFeatures', "NaNs in feature ''%s'' for subject %d, activity %s.", feature, s, a{1});
 				end
@@ -82,7 +90,7 @@ function features = extractfeatures(prevData, varargin)
 			end
 		end
 
-		features.(varName).(featureFunc) = [features.(varName).(featureFunc) currentFeatures];
+		features.(varName).(featFieldName) = [features.(varName).(featFieldName) currentFeatures];
 	end
 
 end

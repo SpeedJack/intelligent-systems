@@ -1,0 +1,38 @@
+\section{Selection of the number of convolutional
+layers}\label{sec:cnnconvlayers}
+
+CNN definitions from 23 to 26 try different architectures by increasing the
+number of convolutional blocks. Each block has the same structure, as defined
+in \secref{subsec:cnnfinalbase}. Note that now the number of filters of a
+convolutional layer is computed as \(i\times16\), where \(i\) is an integer
+which increases going down in the CNN, so that the first convolutional layer
+has 16 filters; the second has 32 filters; the third has 48 filters and so on.
+As we move forward through layers, the patterns that the convolutional layers
+must try to identify become more complex and more filters may allow the network
+to better find these patterns.
+
+To account for the increased number of filters in the last convolutional layer,
+I've also increased the size of fully connected layers. Since now the
+architecture is quite complex, I am also going to perform tests using 60 epochs
+(instead of 30, as before).
+
+Results in \tableref{table:cnnconvlayers}. The best results are given by the
+last 2 CNNs, with 4 and 5 convolutional blocks.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\toprule
+		\# & Layers & RMSE & Best RMSE & R \\
+		\midrule
+		7 (30 epochs) & 1 & \(2013.3\) & \(514.46\) & \(0.748\) \\
+		7\emph{bis} (30 epochs) & 1 & \(680.05\) & \(655.85\) & \(0.757\) \\
+		23 & 2 & \(467.33\) & \(413.65\) & \(0.915\) \\
+		24 & 3 & \(466.06\) & \(335.28\) & \(0.935\) \\
+		25 & 4 & \(382.39\) & \(406.14\) & \(0.940\) \\
+		26 & 5 & \(500.22\) & \(243.24\) & \(0.939\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Increasing the number of convolutional
+	blocks.}\label{table:cnnconvlayers}
+\end{table}

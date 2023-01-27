@@ -1,0 +1,27 @@
+\section{Selection of the input normalization
+algorithm}\label{sec:cnnnormalization}
+
+I've tried to change the normalization algorithm for the input sequences with
+all the available options. Results in \tableref{table:cnnnormalization}. Note
+that, for CNN definitions from 36 to 38 I've trained the network with 30 epochs
+instead of 60. For comparison purposes, I've rerun \code{cnndef32} with 30
+epochs.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\toprule
+		\# & Normalization algorithm & RMSE & Best RMSE & R \\
+		\midrule
+		32\emph{bis} & \code{rescale-symmetric} & \(389.18\) & \(458.96\) & \(0.943\) \\
+		36 & \code{zerocenter} & \(628.59\) & \(416.31\) & \(0.910\) \\
+		37 & \code{zscore} & \(648.17\) & \(291.9\) & \(0.943\) \\
+		38 & \code{rescale-zero-one} & \(443.72\) & \(324.47\) & \(0.939\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Changing the normalization
+	algorithm.}\label{table:cnnnormalization}
+\end{table}
+
+The best results are obtained with \code{rescale-symmetric} and \code{zscore}.
+I will use \code{zscore}, due to the lower RMSE in the best case.

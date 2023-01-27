@@ -4,8 +4,10 @@ function augmented = augmentdata(dataset, varargin)
 	validPositiveInt = @(x) isscalar(x) && isnumeric(x) && (x > 0) && (x == round(x));
 	p.addRequired('dataset', @isstruct);
 	p.addOptional('samplesPerActivity', 2000, validPositiveInt);
+	p.addParameter('fixedTimeSteps', false, @(x) isscalar(x) && islogical(x));
 	p.addParameter('minDuration', seconds(25), validDuration);
 	p.addParameter('maxDuration', seconds(40), validDuration);
+	p.addParameter('timeSteps', 2500, validPositiveInt);
 	p.addParameter('rngSeed', 0xdeadbeef, validPositiveInt);
 	p.parse(dataset, varargin{:});
 
@@ -13,6 +15,8 @@ function augmented = augmentdata(dataset, varargin)
 	samplesPerActivity = p.Results.samplesPerActivity;
 	minDuration = floor(p.Results.minDuration / milliseconds(2));
 	maxDuration = ceil(p.Results.maxDuration / milliseconds(2));
+	fixedTimeSteps = p.Results.fixedTimeSteps;
+	timeSteps = p.Results.timeSteps;
 	rngSeed = p.Results.rngSeed;
 
 	augmented.subjectCount = samplesPerActivity;
@@ -28,6 +32,7 @@ function augmented = augmentdata(dataset, varargin)
 		for s = 1:dataset.subjectCount
 			currentSubject = dataset.("s" + string(s));
 			if ~isfield(currentSubject, a{1})
+				actRowCounts = [actRowCounts; [0, s]];
 				continue;
 			end
 			currentTable = currentSubject.(a{1});
@@ -54,7 +59,11 @@ function augmented = augmentdata(dataset, varargin)
 			currentSubject = dataset.("s" + string(subjectIndex));
 			currentTable = currentSubject.(activity);
 			rowCount = actRowCounts(subjectIndex, 1);
-			sampleRowCount = randi([minDuration, maxDuration]);
+			if fixedTimeSteps
+				sampleRowCount = timeSteps;
+			else
+				sampleRowCount = randi([minDuration, maxDuration]);
+			end
 			startIndex = randi(rowCount - sampleRowCount);
 			endIndex = startIndex + sampleRowCount - 1;
 			augmented.("s" + string(curSample)).(activity) = currentTable(startIndex:endIndex, :);

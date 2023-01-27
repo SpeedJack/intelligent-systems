@@ -1,0 +1,34 @@
+\section{Selection of training algorithm and options}\label{sec:rnntraining}
+
+RNN definitions 21 and 22 are used to try training algorithms different from
+the Adam solver. Results are shown in \tableref{table:rnntraining}. Excellent
+performances are obtain with the RMSProp optimizer (\(R = 0.981\) in just 50
+epochs).
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\toprule
+		\# &  & RMSE & Best RMSE \\
+		\midrule
+		18 & Adam & \(3389.88\) & \(1550.45\) \\
+		21 & SGDM & \(23551.03\) & \(22790.77\) \\
+		22 & RMSProp & \(737.76\) & \(613.98\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Trying different optimizers.}\label{table:rnntraining}
+\end{table}
+
+Chosen training options are the following:
+\begin{description}
+	\item[MiniBatchSize] \(300\). I've tried some values and this seems to
+		be a good one.
+	\item[Shuffle] every epoch.
+	\item[InitialLearnRate] \(0.1\). In an attempt to speed up the
+		training, since it requires a huge amount of epochs to reach
+		good results.
+	\item[LearnRateSchedule] \code{piecewise}.
+	\item[LearnRateDropFactor] \(0.4\). To not reduce the learning rate too
+		much, otherwise too epochs are needed to train the network.
+	\item[LearnRateDropPeriod] every \(50\) epochs.
+\end{description}

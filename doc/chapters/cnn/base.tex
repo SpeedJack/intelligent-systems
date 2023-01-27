@@ -1,0 +1,133 @@
+\section{Selection of the base block of the CNN}\label{sec:cnnbase}
+
+I will start with the CNN definition shown in \lstref{lst:cnndef1}.
+
+\lstinputlisting[language={matlab}, label={lst:cnndef1}, style={Matlab-editor},
+basicstyle={\footnotesize\ttfamily}, caption={\code{cnndef1.m}}]{cnndef1.m}
+
+The base block of the CNN is:
+\begin{enumerate}
+	\item A \standout{1-dimensional convolutional layer} with 16 filters,
+		with each filter of size 5. The filters will slide over the
+		input with a stride of 2.
+	\item A \standout{batch normalization layer}. Used between every
+		convolutional layer and non-linear layers, as recommended by
+		the MATLAB documentation, in order to speed up the training
+		process and reduce the sensitivity to network initialization.
+	\item A \standout{leaky ReLU layer}, to avoid the vanishing gradient
+		issue.
+	\item A \standout{max pooling layer} of size 3 and with a stride of 2.
+\end{enumerate}
+
+After the base block, the architecture has a \standout{global average pooling
+layer} and then some \standout{fully connected layers}.
+
+In this section, I will try to optimize this base block by trying to change
+various parameters. Note that I will just use a training set for these tests,
+as the periodic validation of the validation set by the training algorithm
+causes a huge slow down in the training process.
+
+\subsection{Size of filters and stride}
+
+I will start with the size of filters of the convolutional layer and their
+stride. CNN definitions from 1 to 14 try different combinations of these
+parameters. \tableref{table:cnnfiltersizestride} contains the results obtained
+from some of the tests done\footnote{I will report here only the most
+interesting results. Results of other runs can be found in diaries.}. For each
+run:
+\begin{itemize}
+	\item The first column contains the definition number of the CNN.
+	\item The second column contains the parameters used. The first number
+		is the size of the filters, while the second number is the
+		value used for the stride.
+	\item The third column contains the RMSE (Root Mean Square Error) of
+		the CNN at the last iteration.
+	\item The fourth column is the RMSE of the CNN at the \emph{best}
+		iteration \idest{the one for which the loss function returned
+		the lowest value}. When I will train the final CNN, I will use
+		also a validation set and I will stop the training when the
+		validation error stops decreasing --- so this value may be
+		considered as an estimate of the result that I may obtain with
+		the validation set.
+	\item The last column is the correlation coefficient (\(R\)) to
+		evaluate the regression quality.
+\end{itemize}
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\toprule
+		\# & Params & RMSE & Best RMSE & R \\
+		\midrule
+		4 & 15, 4 & \(948.81\) & \(664.15\) & \(0.758\) \\
+		5 & 25, 4 & \(1377.5\) & \(541.93\) & \(0.751\) \\
+		7 & 9, 3 & \(2013.3\) & \(514.46\) & \(0.748\) \\
+		7\emph{bis} & 9, 3 & \(680.05\) & \(655.85\) & \(0.757\) \\
+		11 & 7, 2 & \(955.2\) & \(651.47\) & \(0.752\) \\
+		13 & 11, 2 & \(665.53\) & \(783.15\) & \(0.755\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Some (not all) of the results obtained in the attempt to
+	optimize the size and the stride of the filters of the convolutional
+	layer. Note that \code{cnndef7} has been executed 2
+	times.}\label{table:cnnfiltersizestride}
+\end{table}
+
+Based on the results, I will use a filter size of 9 and a stride of 3
+(\code{cnndef7}). It is the second best result according to the \(R\)
+parameter, but it is the first one according to the RMSE of the best iteration
+(\(514.46\)).
+
+\subsection{Type of pooling layers}
+
+Using the architecture of \code{cnndef7} as a base, the CNN definitions from 15
+to 17 try different combinations for the types of pooling layers (the pooling
+layer at the output of the base convolutional block and the global pooling
+layer before the fully connected layers).
+
+Results in \tableref{table:cnnpoolingtypes}. For the ``Params'' column, the
+first is the type of the pooling layer of the convolutional block, while the
+second is the type of the global pooling layer.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\toprule
+		\# & Params & RMSE & Best RMSE & R \\
+		\midrule
+		7 & max, avg & \(2013.3\) & \(514.46\) & \(0.748\) \\
+		7\emph{bis} & max, avg & \(680.05\) & \(655.85\) & \(0.757\) \\
+		15 & avg, avg & \(708.32\) & \(631.68\) & \(0.751\) \\
+		16 & avg, max & \(1049.09\) & \(879.13\) & \(0.511\) \\
+		17 & max, max & \(1180.54\) & \(786.54\) & \(0.610\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Trying different combinations for the type of pooling
+	layers.}\label{table:cnnpoolingtypes}
+\end{table}
+
+Based on the results, I will use \code{maxPooling1dLayer} for the convolutional
+block and \code{globalAveragePooling1dLayer} before the fully connected layers,
+as I was doing before.
+
+\subsection{Size of pooling regions and stride}
+
+CNN definitions from 18 to 21 try different combinations for the size of
+pooling regions for the \code{maxPooling1dLayer} and its stride. I will not
+show the results here (check the diaries if interested): I will just say that
+the values which gave the best results are 3 for the size of the regions and 2
+for the stride.
+
+\subsection{Final CNN base block}\label{subsec:cnnfinalbase}
+
+Using \code{cnndef22} I have also tried to change the padding mode of the
+convolutional layer from ``same'' to ``causal'', but it achieved lower
+performances.
+
+So, the final selected CNN base block is shown in \lstref{lst:cnndef7}. This
+block will be used in the following sections to build a more complex CNN
+architecture.
+
+\lstinputlisting[language={matlab}, label={lst:cnndef7}, style={Matlab-editor},
+basicstyle={\footnotesize\ttfamily}, caption={Optimized CNN convolutional base
+block.}]{cnndef7.m}

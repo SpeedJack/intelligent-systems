@@ -1,5 +1,7 @@
 close all; clearvars -except -regexp ^[A-Z0-9_]+$; clc;
 
+% TODO: REMOVE
+
 diaryon('mlptest_mean');
 
 preparedataStage = Stage(@preparedata, 'dataset.mat');

@@ -1,1 +1,50 @@
-\chapter{ECG mean using a Convolutional Neural Network}\label{ch:cnn}
+\chapter{ECG's standard deviation estimation using a Convolutional Neural
+Network}\label{ch:cnn}
+
+In this chapter I will discuss the design and implementation of a convolutional
+neural network used to estimate the standard deviation of the ECG signal, since
+the MLP developed in \chref{ch:ecg} performed poorly. This implements the
+requirements for the Task 4.1 of the Project Specifications.
+
+For this task, I've modified (through the use of some parameters) how the
+\code{augmentdata} stage perform the data augmentation on the dataset. All the
+samples extracted via random subsampling are now all of the same length (2500
+time steps, or 5 seconds).
+
+In the following sections, I'm going to run the training of different CNN
+architectures in order to try to find a good architecture. CNN definitions can
+be found in directory \code{src/cnndefs}, where each file has a name in the
+form \code{cnndefX.m}, where \(X\) is an incremental number. So, when in the
+text I refer, for example, to the ``CNN definition 7'', you can see the
+architecture in \code{src/cnndefs/cnndef7.m}.
+
+Moreover, directory \code{diaries} contains the diaries of execution of all
+tested architectures. Here, you can find all the results in the last lines of
+each file named \code{cnntrain\_cnndefX.txt}.
+
+The training of a CNN, can be run with:
+\begin{verbatim}
+> cnntrain X
+\end{verbatim}
+where \(X\) is the CNN definition number. If not specified, it will run the
+training of the final CNN architecture\footnote{In file
+\code{src/cnndefs/cnndef.m}.}.
+
+Other parameters can be specified, for example:
+\begin{verbatim}
+> cnntrain(15, 'epochs', 20, 'valRatio', 0.15, ...
+        'testRatio', 0.15)
+\end{verbatim}
+will run the training of CNN definition 15 with 20 epochs using also a
+validation and a test set.
+
+The script \code{cnntrain} is in the \code{src/scripts} folder, as usual.
+
+\input{cnn/base}
+\input{cnn/convlayers}
+\input{cnn/filters}
+\input{cnn/arch}
+\input{cnn/normalization}
+\input{cnn/training}
+\input{cnn/dropout}
+\input{cnn/finalcnn}

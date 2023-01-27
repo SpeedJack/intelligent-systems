@@ -10,7 +10,7 @@ several methods for data augmentation:
 \begin{enumerate}
 \item Data augmentation by \standout{adding some noise or distorsions} to
 	available signals.
-\item \emph{Feature} augmentation using an \standout{autoencoder}.
+\item \emph{Feature} augmentation using a \standout{variational autoencoder}.
 \item Data augmentation via a \standout{(Conditional) (Wasserstein) Generative
 	Adversarial Network} (CW-GAN).
 \item Data augmentation via \standout{random subsampling}.
@@ -23,15 +23,15 @@ groups of similar samples, and the intelligent systems would probably learn to
 predict the group of the sample instead of generalizing, leading to
 overfitting.
 
-The second method has the same issue: the autoencoder would create various
-feature matrices from the same recordings, creating different groups of feature
-matrices with similar statistical characteristics.
+The second method has the issue that the autoencoder needs to be trained, so it
+requires at least some data: 66 feature matrices as training samples are
+probably insufficient to get a good autoencoder.
 
 The third method is too complex, and would probably require a lot of time to
 generate the new signals. Moreover, it is too hard to determine \emph{a priori}
-the quality of the generated signals via this method. Generated signals may be
-too artificial to be used to represent real world signals: it's a risky
-approach.
+the quality of the generated signals via this method when the GAN network is
+trained with only 66 real samples. Generated signals may be too artificial to
+be used to represent real world signals: it's a risky approach.
 
 I chose to go with the fourth method. Extracting random samples from the
 more-than-8-minutes-long recordings is a simple and secure approach: data is

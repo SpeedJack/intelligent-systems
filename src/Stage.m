@@ -113,8 +113,19 @@ classdef Stage < handle
 				inputData = stage.getOutput();
 				return;
 			end
+	
+			inputData = struct();
 			for stage = obj.InputStages
-				inputData.(stage.Name) = stage.getOutput();
+				if ~isfield(inputData, stage.Name)
+					inputData.(stage.Name) = {};
+				end
+				inputData.(stage.Name){end+1} = stage.getOutput();
+			end
+			for f = fieldnames(inputData)'
+				f = f{1};
+				if numel(inputData.(f)) == 1
+					inputData.(f) = inputData.(f){1};
+				end
 			end
 		end
 
@@ -136,6 +147,7 @@ classdef Stage < handle
 			if ~exist(folder, 'dir')
 				mkdir(folder);
 			end
+	
 			save(obj.OutputFile, '-struct', 'output');
 
 			output = obj.getOutput();

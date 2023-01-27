@@ -1,0 +1,67 @@
+[System]
+Name='mamdani'
+Type='mamdani'
+Version=2.0
+NumInputs=3
+NumOutputs=1
+NumRules=18
+AndMethod='prod'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='mom'
+
+[Input1]
+Name='lc1mean'
+Range=[-1 1]
+NumMFs=4
+MF1='low':'gbellmf',[0.5 2 -0.8]
+MF2='low-med':'gbellmf',[0.25 2 -0.3]
+MF3='med-high':'gbellmf',[0.4 2 0.2]
+MF4='high':'gbellmf',[0.5 2 0.8]
+
+[Input2]
+Name='pleth1mean'
+Range=[-1 1]
+NumMFs=4
+MF1='low':'gbellmf',[0.5 2 -0.9]
+MF2='low-med':'gbellmf',[0.3 2 -0.2]
+MF3='med-high':'gbellmf',[0.2 2 0.2]
+MF4='high':'gbellmf',[0.2 2 1]
+
+[Input3]
+Name='pleth2mean'
+Range=[-1 1]
+NumMFs=4
+MF1='low':'gbellmf',[0.5 2 -0.9]
+MF2='med':'gbellmf',[0.4 2 0]
+MF3='med-high':'gbellmf',[0.25 2 0.35]
+MF4='high':'gbellmf',[0.3 2 1]
+
+[Output1]
+Name='activity'
+Range=[0 2]
+NumMFs=3
+MF1='sit':'sigmf',[-7 0.75]
+MF2='walk':'gbellmf',[0.1 1.5 1]
+MF3='run':'sigmf',[7 1.25]
+
+[Rules]
+0 2 3, 3 (1) : 1
+2 0 1, 2 (1) : 1
+3 0 1, 2 (1) : 1
+3 4 4, 1 (1) : 1
+4 0 2, 1 (1) : 1
+4 1 0, 3 (1) : 1
+4 4 0, 2 (1) : 1
+3 3 3, 3 (0.98) : 1
+1 4 3, 2 (0.39) : 1
+4 3 0, 1 (0.88) : 1
+3 0 4, 1 (0.27) : 1
+0 1 1, 2 (0.34) : 1
+4 0 3, 1 (0.8) : 1
+1 0 2, 2 (0.26) : 1
+2 3 2, 2 (0.22) : 1
+3 0 3, 3 (0.35) : 1
+0 0 1, 2 (0.08) : 1
+1 3 4, 2 (0.46) : 1

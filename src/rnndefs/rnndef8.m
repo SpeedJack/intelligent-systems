@@ -1,0 +1,16 @@
+function [layers, options, winSize, rnnDesc] = rnndef8
+	layers = [
+		sequenceInputLayer(8, 'Normalization', 'rescale-symmetric')
+		lstmLayer(50, 'OutputMode', 'last')
+		fullyConnectedLayer(1)
+		regressionLayer
+	];
+	options = trainingOptions('adam', ...
+		'MiniBatchSize', 300, ...
+		'InitialLearnRate', 0.1, ...
+		'Shuffle', 'every-epoch', ...
+		'SequencePaddingDirection', 'left' ...
+	);
+	winSize = 15;
+	rnnDesc = "winSize = 15";
+end

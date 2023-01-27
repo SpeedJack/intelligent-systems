@@ -1,5 +1,6 @@
 function diaryon(name)
 	global DIARIES_FOLDER
+	name = char(name);
 	projectRoot = currentProject().RootFolder;
 	diaryDir = fullfile(projectRoot, DIARIES_FOLDER);
 	if ~exist(diaryDir, 'dir')

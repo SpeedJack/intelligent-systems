@@ -1,0 +1,55 @@
+\section{Selection of training algorithm and options}\label{sec:cnntraining}
+
+CNN definitions 39 and 40 try to change the training algorithm from the Adam
+solver to the Stochastic Gradient Descent with Momentum (SGDM) and RMSProp
+optimizers respectively.
+
+Results in \tableref{table:cnntraining}, where all optimizers show good
+results. I will keep the Adam solver\footnote{I've tried using SGDM to train
+the final CNN with 200 epochs, but it stopped improving the network earlier
+than Adam.}.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\toprule
+		\# & Optimizer & RMSE & Best RMSE & R \\
+		\midrule
+		37 & Adam & \(648.17\) & \(291.9\) & \(0.943\) \\
+		39 & SGDM & \(248.61\) & \(248.55\) & \(0.947\) \\
+		40 & RMSProp & \(389.4\) & \(376.43\) & \(0.944\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Trying other optimizers.}\label{table:cnntraining}
+\end{table}
+
+For the other training options \exgratia{the initial learning rate} I'm not
+going to perform tests. Instead, I will try to define some good values using
+common sense. In fact, I intend to perform the training of the final CNN with
+200 epochs, and these parameters should be optimized on full runs of the
+training \idest{200 epochs}. This would require too much time.
+
+I've chosen the following values:
+\begin{description}
+	\item[MiniBatchSize] \(120\). Reducing it may reduce the quality of the
+		gradient estimation. I can not increase it too much due to
+		memory limits. This value will ensure that all the samples will
+		be presented to the network at each epoch when I will train the
+		network with \(4200\) samples (other samples will be reserved
+		for validation and test sets).
+	\item[Shuffle] every epoch.
+	\item[InitialLearnRate] \(0.01\). To have a fast learning during the
+		first epochs.
+	\item[LearnRateDropSchedule] \code{piecewise}: to reduce the learning
+		rate as the training progresses.
+	\item[LearnRateDropFactor] \(0.25\). The default value of \(0.1\) makes
+		the learning rate to fall too fast.
+	\item[LearnRateDropPeriod] every 25 epochs.
+	\item[BatchNormalizationStatistics] \code{population}: it's the only
+		method to support CPU parallelization of the training.
+	\item[L2Regularization] \(0.0001\). The default value seems to work
+		well.
+\end{description}
+
+All other parameters seems to work well with their default value. Also, MATLAB
+documentation reports that these defaults ``work well for most tasks''.

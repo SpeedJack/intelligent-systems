@@ -1,0 +1,23 @@
+\section{Feature selection}\label{sec:fuzzyfeatureselection}
+
+In order to select the best 3 features used for the classifier developed in
+\chref{ch:activity}, \code{sequentialfs} with \standout{backward} feature
+selection has been run on the list of features used for the MLP. The function
+evaluated by \code{sequentialfs} uses the architecture of the MLP of the
+previous chapter, but it changes proportionally the number of hidden neurons in
+both layers as the number of inputs goes down.
+
+The task is performed by the script \code{featureselection\_fuzzy.m}, which
+uses the stage \code{selectfeatures\_fuzzy} (adapted, for this task, from the
+\code{selectfeatures} stage used for the MLPs).
+
+The following are the 3 best features selected by \code{sequentialfs}:
+\begin{itemize}
+	\item \code{lc\_1:mean} windowed.
+	\item \code{pleth\_1:mean} \emph{not} windowed.
+	\item \code{pleth\_2:mean} windowed.
+\end{itemize}
+
+Note that, even if 2 of the 3 features selected are extracted with the windowed
+approach, in the following I'm going to extract them in a single window,
+otherwise the FIS would have 11 input variables instead of 3.

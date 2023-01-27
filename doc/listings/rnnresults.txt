@@ -1,0 +1,51 @@
+# Output network infos:
+	Iteration: 26320 (best-validation-loss)
+	Training:
+		RMSE: 293.342590
+		LOSS: 117917.015625
+	Validation:
+		RMSE: 703.523010
+		LOSS: 247472.328125
+# Last iteration infos:
+	Iteration: 33337
+	Training:
+		RMSE: 348.574615
+		LOSS: 44030.203125
+	Validation:
+		RMSE: 745.070374
+		LOSS: 277564.968750
+# Best (training) LOSS iteration infos:
+	Iteration: 30384
+	Training:
+		RMSE: 190.113846
+		LOSS: 20144.250000
+	Validation:
+		RMSE: NaN
+		LOSS: NaN
+# Best (training) RMSE iteration infos:
+	Iteration: 31792
+	Training:
+		RMSE: 112.202126
+		LOSS: 52728.476562
+	Validation:
+		RMSE: NaN
+		LOSS: NaN
+# Best (validation) LOSS iteration infos: *see output network*
+# Best (validation) RMSE iteration infos:
+	Iteration: 26320
+	Training:
+		RMSE: 293.342590
+		LOSS: 117917.015625
+	Validation:
+		RMSE: 703.523010
+		LOSS: 247472.328125
+=======
+Training stats:
+	R: 0.997300 (95% CI: 0.997248 - 0.997351)
+	P-value: 0.000000
+Validation stats:
+	R: 0.993220 (95% CI: 0.992935 - 0.993494)
+	P-value: 0.000000
+Test stats:
+	R: 0.995305 (95% CI: 0.995107 - 0.995494)
+	P-value: 0.000000

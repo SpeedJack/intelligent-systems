@@ -11,12 +11,12 @@ The first stages of most pipelines used in this project are the following:
 	structure itself with a field for each activity containing a timetable
 	with a column for each signal (including the ECG signal).
 \item[fixdata] This stage checks that each timetable built in the previous
-	stage do not contain any large ``hole'' (a long period of time without
-	data). If such a hole is found, the timetable is splitted into 2
-	timetables, creating a new subject. The resulting MATLAB structure has
-	the same fields as before. In particular, this stage is used to fix the
-	data of subject \texttt{s1} during the activity \texttt{sit} which has
-	a large 1 hour hole in the middle of the data. A new subject
+	stage does not contain any large ``hole'' (a long period of time
+	without data). If such a hole is found, the timetable is splitted into
+	2 timetables, creating a new subject. The resulting MATLAB structure
+	has the same fields as before. In particular, this stage is used to fix
+	the data of subject \texttt{s1} during the activity \texttt{sit} which
+	has a large 1 hour hole in the middle of the data. A new subject
 	(\texttt{s23}) is created with the only activity \texttt{sit}. From
 	execution output:
 	\begin{verbatim}

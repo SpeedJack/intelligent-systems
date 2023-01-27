@@ -1,1 +1,32 @@
 \chapter{ECG prediction using a Recurrent Neural Network}\label{ch:rnn}
+
+In this chapter I will discuss the design and implementation of a Long
+Short-Term Memory (LSTM) Recurrent Neural Network (RNN) that is able to predict
+the next value of the ECG signal given as input the ECG signal up to the
+previous time step and some other signals. This implements the requirements for
+the Task 4.2 of the Project Specifications.
+
+The approach followed to develop the RNN is similar to the one used in
+\chref{ch:rnn}. In particular, since training of CNNs and RNNs is similar, the
+script \code{rnntrain.m} is a copy-pasted and adapted version of the
+\code{cnntrain.m} script.
+
+Note that, for this task, I've changed again the way data augmentation is
+performed. Here, I'll extract a total of \(60000\) samples of \(61\) time
+steps, since \(6000\) samples were not sufficient to train the RNN. Moreover,
+the \code{fixdata} stage is instructed to divide samples whenever a hole larger
+than 2 milliseconds (the fastest sampling rate) is found in the data: to train
+an RNN, I do not want to have any hole at all in the data.
+
+The developed RNN uses 8 signals of the 11 signals available in the dataset.
+The 8 signals selected are all the signals that are sampled with a sampling
+rate of \(500\) Hz (the \code{pleth\_*} signals, the \code{temp\_3} signal
+and, obiously, the \code{ecg} signal). This choice has been made in order to
+avoid to use signals sampled at lower rates, which remain constants for some
+time steps and may degrade the performance of the network.
+
+\input{rnn/winsize}
+\input{rnn/normalization}
+\input{rnn/neurons}
+\input{rnn/training}
+\input{rnn/finalrnn}

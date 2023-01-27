@@ -1,0 +1,25 @@
+\section{Selection of the number of neurons}\label{sec:rnnneurons}
+
+RNN definitions from 14 to 20 are used to try different values for the number
+of neurons in the LSTM layer. Results are shown in \tableref{table:rnnneurons}.
+Best results are obtained using \(65\) neurons.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\toprule
+		\# & \# of neurons & RMSE & Best RMSE \\
+		\midrule
+		12 & 50 & \(3157.22\) & \(2930.36\) \\
+		14 & 20 & \(15698.21\) & \(13928.67\) \\
+		15 & 25 & \(10191.53\) & \(10191.53\) \\
+		16 & 30 & \(9127.55\) & \(7290.41\) \\
+		17 & 40 & \(6569.25\) & \(2298.45\) \\
+		18 & 65 & \(3389.88\) & \(1550.45\) \\
+		19 & 80 & \(15068.95\) & \(3021.44\) \\
+		20 & 100 & \(4208.14\) & \(2406.95\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Changing the number of neurons for the LSTM
+	layer.}\label{table:rnnneurons}
+\end{table}

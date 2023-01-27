@@ -4,9 +4,11 @@ function [buildfeaturematrixStage, extracttargetsStage] = pretrainingpipeline(ta
 
 	fixdataStage = Stage(@fixdata, 'fixed_dataset.mat');
 	fixdataStage.addInputStages(preparedataStage);
+	fixdataStage.ClearMemoryAfterExecution = true;
 
 	augmentdataStage = Stage(@augmentdata, 'augmented_dataset.mat');
 	augmentdataStage.addInputStages(fixdataStage);
+	augmentdataStage.ClearMemoryAfterExecution = true;
 
 	matSuffix = '';
 	if windowed

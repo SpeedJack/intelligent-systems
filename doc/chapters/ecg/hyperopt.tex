@@ -81,17 +81,18 @@ terms of number of hidden units.
 \lstinputlisting[language={}, label={lst:mlphyperopt}, caption={Result of the
 execution of the \texttt{mlphyperopt.m} script.}]{mlphyperopt.txt}
 
-\subsection{Bayesian optimization of the network
-architecture}\label{subsec:mlpbayesopt}
+\subsection{Bayesian optimization of the networks'
+architectures}\label{subsec:mlpbayesopt}
 
 The exact architecture of the two networks is selected using the script
 \texttt{mlpbayesopt.m}. This script uses the \texttt{hyperoptmlp} stage which
 in turn uses the Bayesian optimization algorithm (\code{bayesopt}) to minimize
 the \code{KFoldCVLoss} function which performs a \standout{5-fold
-cross-validation}. \code{bayesopt} will try different combinations of the 4
-parameters that defines the architecture of the network in an effort to find
-the best combination (ranges have been chosen based on the results of the
-\code{mlphyperopt.m} script shown in \lstref{lst:mlphyperopt}):
+cross-validation}. The Bayesian optimization algorithm will try different
+combinations of the following 4 parameters that defines the architecture of the
+network in an effort to find the best combination (ranges have been chosen
+based on the results of the \code{mlphyperopt.m} script shown in
+\lstref{lst:mlphyperopt}):
 \begin{description}
 \item[hiddenLayers] The number of hidden layers. Range:
 	\(\interval{1}{3}\).

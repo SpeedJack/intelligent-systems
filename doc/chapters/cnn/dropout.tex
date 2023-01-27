@@ -1,0 +1,48 @@
+\section{Adding a dropout layer}\label{sec:cnndropout}
+
+Finally I'm going to try to add 2 dropout layers between the fully connected
+layers. I'll try the following two configurations (only the probability of the
+first dropout layer changes):
+
+CNN definition 41:
+\begin{verbatim}
+fullyConnectedLayer(180)
+dropoutLayer(0.2)
+fullyConnectedLayer(50)
+dropoutLayer(0.1)
+fullyConnectedLayer(10)
+fullyConnectedLayer(1)
+\end{verbatim}
+
+CNN definition 42:
+\begin{verbatim}
+fullyConnectedLayer(180)
+dropoutLayer(0.3)
+fullyConnectedLayer(50)
+dropoutLayer(0.1)
+fullyConnectedLayer(10)
+fullyConnectedLayer(1)
+\end{verbatim}
+
+The 2 tests are executed in 45 epochs with a validation set (\(15\%\) of
+samples) and a validation frequency of 5 iterations.
+
+Results are shown in \tableref{table:cnndropout}. All values are relative to
+the best validation loss network.
+
+\begin{table}[hbtp]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\toprule
+		\# & Dropout & Tr.~RMSE & Val.~RMSE & Tr.~R & Val.~R \\
+		\midrule
+		41 & \(0.2\) & \(678.59\) & \(490.41\) & \(0.945\) & \(0.936\) \\
+		42 & \(0.3\) & \(640.06\) & \(560.28\) & \(0.950\) & \(0.929\) \\
+		\bottomrule
+	\end{tabular}
+	\caption{Adding dropout layers to avoid
+	overfitting.}\label{table:cnndropout}
+\end{table}
+
+As the objective is to avoid overfitting, I will use a dropout probability of
+\(0.2\) as the \(R\) values for training and validation sets are more similar.
